@@ -4,8 +4,8 @@ Repo for the ScaDaMaLe project
 
 ## TO DO:
 - Basic training for CIFAR10
-- Vanila DDP
-- Optimized DDP
+- Vanila DDP - Single server
+- Final DDP - multiple servers
 - SWAP
 - Fix readme 
 
