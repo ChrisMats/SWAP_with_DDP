@@ -1,0 +1,172 @@
+{
+"dataset_params" : {"data_location" : ".data",
+                    "download_data" : false,
+                    "validation_size" : 0.2,
+                    "train_transforms" : {"Resize" : {"apply" : false,
+                                                      "height" : 256,
+                                                      "width" : 256},
+                                        
+                                        "CenterCrop": {"apply" : false,
+                                                      "height" : 448,
+                                                      "width" : 448}, 
+                                        
+                                        "Normalize": true,
+                                        
+                                        "VerticalFlip" : true,
+                                        "HorizontalFlip" : true,
+                                        "RandomRotatons" : {"apply" : false,
+                                                            "angle" : 5}, 
+                                        
+                                        "RandomCrop": {"apply" : false,
+                                                      "height" : 224,
+                                                      "width" : 224}, 
+                                        
+                                        "ColorJitter" : {"apply" : true,
+                                                        "brightness" : 0.2,
+                                                        "contrast" : 0.2,
+                                                        "saturation" : 0.2,
+                                                        "hue" : 0.2},
+                                          
+                                        "RandomPerspective" : {"apply" : true,
+                                                            "distortion_scale" : 0.2}, 
+    
+                                        "RandomAffine" : {"apply" : false,
+                                                              "degrees" : "None",
+                                                              "translate" : "None", 
+                                                              "scale" : "None",
+                                                         "shear" :"None"}                                          
+                                         },
+                  
+                    "val_transforms" : {"Resize" : {"apply" : false,
+                                                      "height" : 256,
+                                                      "width" : 256},
+                                        
+                                        "CenterCrop": {"apply" : false,
+                                                      "height" : 448,
+                                                      "width" : 448}, 
+                                        
+                                        "Normalize": true,
+                                        
+                                        "VerticalFlip" : false,
+                                        "HorizontalFlip" : false,
+                                        "RandomRotatons" : {"apply" : false,
+                                                            "angle" : 10}, 
+                                        
+                                        "RandomCrop": {"apply" : false,
+                                                      "height" : 448,
+                                                      "width" : 448}, 
+                                        
+                                        "ColorJitter" : {"apply" : false,
+                                                        "brightness" : 0.1,
+                                                        "contrast" : 0.1,
+                                                        "saturation" : 0.1,
+                                                        "hue" : 0.1},
+                                          
+                                        "RandomPerspective" : {"apply" : false,
+                                                            "distortion_scale" : 0.2}, 
+    
+                                        "RandomAffine" : {"apply" : false,
+                                                              "degrees" : "None",
+                                                              "translate" : "None", 
+                                                              "scale" : "None",
+                                                         "shear" :"None"}                                          
+                                         },
+                  
+                    "test_transforms" : {"Resize" : {"apply" : false,
+                                                      "height" : 256,
+                                                      "width" : 256},
+                                        
+                                        "CenterCrop": {"apply" : false,
+                                                      "height" : 448,
+                                                      "width" : 448}, 
+                                        
+                                        "Normalize": true,
+                                        
+                                        "VerticalFlip" : false,
+                                        "HorizontalFlip" : false,
+                                        "RandomRotatons" : {"apply" : false,
+                                                            "angle" : 10}, 
+                                        
+                                        "RandomCrop": {"apply" : false,
+                                                      "height" : 448,
+                                                      "width" : 448}, 
+                                        
+                                        "ColorJitter" : {"apply" : false,
+                                                        "brightness" : 0.1,
+                                                        "contrast" : 0.1,
+                                                        "saturation" : 0.1,
+                                                        "hue" : 0.1},
+                                         
+                                        "RandomPerspective" : {"apply" : false,
+                                                            "distortion_scale" : 0.2},                                         
+    
+                                        "RandomAffine" : {"apply" : false,
+                                                              "degrees" : "None",
+                                                              "translate" : "None", 
+                                                              "scale" : "None",
+                                                         "shear" :"None"}                                         
+                                         }
+                  },
+    
+"dataloader_params" : {"trainloader" : {"batch_size" : 128, 
+                                   "num_workers" : 8,
+                                   "shuffle": true, 
+                                    "pin_memory" : true},
+                   "valloader" : {"batch_size" : 128, 
+                                   "num_workers" : 8,
+                                   "shuffle": false, 
+                                    "pin_memory" : true},
+                   "testloader" : {"batch_size" : 128, 
+                                   "num_workers" : 8,
+                                   "shuffle": true, 
+                                    "pin_memory" : true}
+                  },
+    
+"model_params" : {"backbone_type": "resnet34",
+                  "pretrained" : true,
+                  "freeze_backbone" : false
+                  },
+
+"optimization_params" : {
+    "default" : {"optimizer" : {
+                    "type" : "Adam",
+                    "params" : {"lr" : 2e-3,
+                                "weight_decay" : 1e-6}
+                            },
+                "scheduler" : {
+                    "type" : "OneCycleLR",
+                    "params" : {"ReduceLROnPlateau" : {"mode" : "max",
+                                                    "factor" : 0.1,
+                                                    "patience" : 3, 
+                                                    "verbose" : true},
+                                "MultiStepLR" : {"milestones": [10,20], 
+                                                 "gamma" : 0.1}
+                               }
+    
+                            }
+                   }
+            },
+
+        
+"training_params" : {"model_name" : "testmodel",
+                   "grad_clipping" : 1.0,
+                   "restore_session" : false,
+                    "restore_only_model": false,
+                   "epochs" : 25,
+                   "val_every" : 1,
+                   "save_every" : 1,
+                   "save_best_model": true,
+                   "log_every" : 100
+                  },
+    
+"system_params" : {"use_all_GPUs" : false,
+                   "which_GPUs": "1",
+                   "use_GPU" : true
+                  },
+    
+"log_params" : {"project_name" : "SWAP_with_DDP",
+                "run_name": "DEFINED_BY_MODEL_NAME"
+                }
+
+}
+

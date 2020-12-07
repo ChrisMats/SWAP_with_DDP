@@ -3,11 +3,11 @@ Repo for the ScaDaMaLe project
 
 
 ## TO DO:
-- Basic training for CIFAR10
-- Vanila DDP - Single server
-- Final DDP - multiple servers
-- SWAP
-- Fix readme 
+- [x] Basic training for CIFAR10
+- [ ] Vanila DDP - Single server
+- [ ] Final DDP - multiple servers
+- [ ] SWAP
+- [ ] Fix readme 
 
 
 ## Stochastic Weight Averaging in Parallel (SWAP) in PyTorch
@@ -15,11 +15,20 @@ Repo for the ScaDaMaLe project
  
 ## Install dependencies etc.
 
+- Python 3.8+ 
+- Pytorch 1.7+
+
 ### Install using conda
-- Add conda env
+- Using comands\
+```conda create -n swap python=3.8 scikit-learn easydict matplotlib wandb tqdm -y```\
+```conda install pytorch torchvision cudatoolkit=10.2 -c pytorch -y```
+
+- Using the .yml file\
+```conda env create -f environment.yml```
 
 ### Install using docker (rootless)
 - Add dockerfile
+
 
 
 ### Results
