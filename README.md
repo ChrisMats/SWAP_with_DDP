@@ -11,7 +11,7 @@ Repo for the ScaDaMaLe project
 
 
 ## Stochastic Weight Averaging in Parallel (SWAP) in PyTorch
- - Add project description, contributors etc
+- [ ] Add project description, contributors etc
  
 ## Install dependencies etc.
 
@@ -27,9 +27,9 @@ Repo for the ScaDaMaLe project
 ```conda env create -f environment.yml```
 
 ### Install using docker (rootless)
-- Add dockerfile
+- [ ] Add dockerfile
 
 
 
 ### Results
-- Add main results
+- [ ] Add main results
