@@ -8,3 +8,19 @@ Repo for the ScaDaMaLe project
 - Optimized DDP
 - SWAP
 - Fix readme 
+
+
+## Stochastic Weight Averaging in Parallel (SWAP) in PyTorch
+ - Add project description, contributors etc
+ 
+## Install dependencies etc.
+
+### Install using conda
+- Add conda env
+
+### Install using docker (rootless)
+- Add dockerfile
+
+
+### Results
+- Add main results
