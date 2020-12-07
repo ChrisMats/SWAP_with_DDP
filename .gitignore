@@ -1,0 +1,9 @@
+**/__pycache__
+**/data
+**/.ipynb_checkpoints
+**/checkpoints
+**/models
+**/wandb
+**/.wandb
+**/grid_search_results
+**/results
