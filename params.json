@@ -1,7 +1,7 @@
 {
 "dataset_params" : {"data_location" : ".data",
                     "download_data" : false,
-                    "validation_size" : 0.2,
+                    "validation_size" : 0.1,
                     "train_transforms" : {"Resize" : {"apply" : false,
                                                       "height" : 256,
                                                       "width" : 256},
@@ -21,7 +21,7 @@
                                                       "height" : 224,
                                                       "width" : 224}, 
                                         
-                                        "ColorJitter" : {"apply" : true,
+                                        "ColorJitter" : {"apply" : false,
                                                         "brightness" : 0.2,
                                                         "contrast" : 0.2,
                                                         "saturation" : 0.2,
@@ -108,21 +108,21 @@
                                          }
                   },
     
-"dataloader_params" : {"trainloader" : {"batch_size" : 128, 
-                                   "num_workers" : 8,
+"dataloader_params" : {"trainloader" : {"batch_size" : 256, 
+                                   "num_workers" : 12,
                                    "shuffle": true, 
                                     "pin_memory" : true},
-                   "valloader" : {"batch_size" : 128, 
-                                   "num_workers" : 8,
+                   "valloader" : {"batch_size" : 256, 
+                                   "num_workers" : 12,
                                    "shuffle": false, 
                                     "pin_memory" : true},
-                   "testloader" : {"batch_size" : 128, 
-                                   "num_workers" : 8,
+                   "testloader" : {"batch_size" : 256, 
+                                   "num_workers" : 12,
                                    "shuffle": true, 
                                     "pin_memory" : true}
                   },
     
-"model_params" : {"backbone_type": "resnet34",
+"model_params" : {"backbone_type": "resnet50",
                   "pretrained" : true,
                   "freeze_backbone" : false
                   },
@@ -130,11 +130,11 @@
 "optimization_params" : {
     "default" : {"optimizer" : {
                     "type" : "Adam",
-                    "params" : {"lr" : 2e-3,
+                    "params" : {"lr" : 1e-4,
                                 "weight_decay" : 1e-6}
                             },
                 "scheduler" : {
-                    "type" : "OneCycleLR",
+                    "type" : "ReduceLROnPlateau",
                     "params" : {"ReduceLROnPlateau" : {"mode" : "max",
                                                     "factor" : 0.1,
                                                     "patience" : 3, 
@@ -148,7 +148,7 @@
             },
 
         
-"training_params" : {"model_name" : "testmodel",
+"training_params" : {"model_name" : "testmodel1",
                    "grad_clipping" : 1.0,
                    "restore_session" : false,
                     "restore_only_model": false,
@@ -160,7 +160,7 @@
                   },
     
 "system_params" : {"use_all_GPUs" : false,
-                   "which_GPUs": "1",
+                   "which_GPUs": "2",
                    "use_GPU" : true
                   },
     

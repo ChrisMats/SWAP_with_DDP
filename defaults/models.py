@@ -24,8 +24,6 @@ class Classifier(BaseModel):
             self.freeze_submodel(self.backbone)   
            
     def forward(self, x):
-        if self.freeze_backbone:
-            self.freeze_submodel(self.self.backbone)
             
         x = self.backbone(x)
         x = self.fc(x)

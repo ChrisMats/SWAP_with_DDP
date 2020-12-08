@@ -157,13 +157,11 @@ class BaseModel(nn.Module):
                 
     def freeze_submodel(self, submodel=None):
         submodel = self if submodel is None else submodel
-        submodel.eval()
         for param in submodel.parameters():
             param.requires_grad = False
             
     def unfreeze_submodel(self, submodel=None):
         submodel = self if submodel is None else submodel
-        submodel.train()
         for param in submodel.parameters():
             param.requires_grad = True
 

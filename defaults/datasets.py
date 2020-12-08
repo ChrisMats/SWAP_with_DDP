@@ -36,6 +36,6 @@ class Cifar10(BaseSet, CIFAR10):
                 used_ids = val_ids
             else:
                 raise ValueError("\"{}\" is not a valid mode. Please select one from [train, val, test]")
-                
+
             self.data = self.data[used_ids]
             self.targets = [self.targets[idx] for idx in used_ids]    

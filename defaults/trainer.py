@@ -6,7 +6,7 @@ class Trainer(BaseTrainer):
         super().__init__()
 
         self.parameters = wraped_defs.parameters
-        self.training_params = wraped_defs.training_params
+        self.training_params = self.parameters.training_params
         self.attr_from_dict(self.training_params)
         self.attr_from_dict(wraped_defs.dataloaders)
         self.epoch_steps = len(self.trainloader)
@@ -89,7 +89,10 @@ class Trainer(BaseTrainer):
         if dataloader == None:
             dataloader=self.valloader
             
-        
+        if not len(dataloader):
+            self.best_model = model_to_CPU_state(self.model)
+            self.model.train()
+            return
         val_loss = edict()
         n_classes = self.model.n_classes
         metric = self.metric_fn(self.model.n_classes, dataloader.dataset.int_to_labels, mode="val")
