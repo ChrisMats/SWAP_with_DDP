@@ -130,11 +130,11 @@
 "optimization_params" : {
     "default" : {"optimizer" : {
                     "type" : "Adam",
-                    "params" : {"lr" : 1e-4,
+                    "params" : {"lr" : 2e-4,
                                 "weight_decay" : 1e-6}
                             },
                 "scheduler" : {
-                    "type" : "ReduceLROnPlateau",
+                    "type" : "OneCycleLR",
                     "params" : {"ReduceLROnPlateau" : {"mode" : "max",
                                                     "factor" : 0.1,
                                                     "patience" : 3, 
