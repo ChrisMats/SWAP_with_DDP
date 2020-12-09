@@ -7,6 +7,7 @@ import pickle
 import shutil
 import random
 import inspect
+import warnings
 import numpy as np
 from glob import glob
 from PIL import Image

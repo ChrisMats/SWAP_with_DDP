@@ -38,12 +38,17 @@ class Trainer(BaseTrainer):
         for self.epoch in epoch_bar:
             iter_bar = enumerate(self.trainloader)
             iter_bar = tqdm(iter_bar, desc='Training', leave=False, total=len(self.trainloader))
+            
             for it, batch in iter_bar:
                 self.iters += 1
                 self.global_step(batch=batch, it=it)   
+                
                 if self.val_every != np.inf:
                     if self.iters % int(self.val_every * self.epoch_steps) == 0: 
                         self.epoch_step()
+                        
+            if self.scheduler_type in ['MultiStepLR', 'CosineAnnealingLR']:
+                self.scheduler.step()                        
                 
         print(" ==> Training done")
         self.evaluate()
@@ -75,14 +80,11 @@ class Trainer(BaseTrainer):
         self.evaluate()
         self.save_session()        
         
-        if self.scheduler is not None:       
-            if self.scheduler_type == 'MultiStepLR':
-                self.scheduler.step()
-            if self.scheduler_type == 'ReduceLROnPlateau':
-                if self.scheduler.mode == 'min':
-                    self.scheduler.step(self.val_loss)
-                else:
-                    self.scheduler.step(self.val_acc)
+        if self.scheduler_type == 'ReduceLROnPlateau':
+            if self.scheduler.mode == 'min':
+                self.scheduler.step(self.val_loss)
+            else:
+                self.scheduler.step(self.val_acc)
                 
     def evaluate(self, dataloader=None, report_cm=False, **kwargs):
         self.model.eval()

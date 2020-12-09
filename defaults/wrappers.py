@@ -47,6 +47,10 @@ class DefaultWrapper:
         trainLoader = DataLoader(trainset, **self.dataloader_params['trainloader'])
         valLoader = DataLoader(valset, **self.dataloader_params['valloader'])
         testLoader = DataLoader(testset, **self.dataloader_params['testloader'])
+        
+        if not len(valLoader):
+            warnings.warn("Warning... Using test set as validation set")
+            valLoader = testLoader
 
         return edict({'trainloader': trainLoader, 
                        'valloader' : valLoader,
