@@ -19,7 +19,8 @@
                                         
                                         "RandomCrop": {"apply" : true,
                                                       "height" : 32,
-                                                      "width" : 32}, 
+                                                      "width" : 32,
+                                                      "padding" : 4}, 
                                         
                                         "ColorJitter" : {"apply" : false,
                                                         "brightness" : 0.2,
@@ -27,14 +28,19 @@
                                                         "saturation" : 0.2,
                                                         "hue" : 0.2},
                                           
-                                        "RandomPerspective" : {"apply" : false,
+                                        "RandomPerspective" : {"apply" : true,
                                                             "distortion_scale" : 0.2}, 
     
                                         "RandomAffine" : {"apply" : false,
                                                               "degrees" : "None",
                                                               "translate" : "None", 
                                                               "scale" : "None",
-                                                         "shear" :"None"}                                          
+                                                         "shear" :"None"},
+                                          
+                                        "RandomErasing" : {"apply" : true,
+                                                              "scale" : [0.02, 0.33],
+                                                              "ratio" : [0.3, 3.3], 
+                                                              "value" : 0}                                          
                                          },
                   
                     "val_transforms" : {"Resize" : {"apply" : false,
@@ -54,7 +60,8 @@
                                         
                                         "RandomCrop": {"apply" : false,
                                                       "height" : 448,
-                                                      "width" : 448}, 
+                                                      "width" : 448,
+                                                      "padding" : 0}, 
                                         
                                         "ColorJitter" : {"apply" : false,
                                                         "brightness" : 0.1,
@@ -69,7 +76,12 @@
                                                               "degrees" : "None",
                                                               "translate" : "None", 
                                                               "scale" : "None",
-                                                         "shear" :"None"}                                          
+                                                         "shear" :"None"},
+                                          
+                                        "RandomErasing" : {"apply" : false,
+                                                              "scale" : [0.02, 0.33],
+                                                              "ratio" : [0.3, 3.3], 
+                                                              "value" : 0}                                          
                                          },
                   
                     "test_transforms" : {"Resize" : {"apply" : false,
@@ -89,7 +101,8 @@
                                         
                                         "RandomCrop": {"apply" : false,
                                                       "height" : 448,
-                                                      "width" : 448}, 
+                                                      "width" : 448,
+                                                      "padding" : 0}, 
                                         
                                         "ColorJitter" : {"apply" : false,
                                                         "brightness" : 0.1,
@@ -104,11 +117,16 @@
                                                               "degrees" : "None",
                                                               "translate" : "None", 
                                                               "scale" : "None",
-                                                         "shear" :"None"}                                         
+                                                         "shear" :"None"},
+                                          
+                                        "RandomErasing" : {"apply" : false,
+                                                              "scale" : [0.02, 0.33],
+                                                              "ratio" : [0.3, 3.3], 
+                                                              "value" : 0}                                           
                                          }
                   },
     
-"dataloader_params" : {"trainloader" : {"batch_size" : 128, 
+"dataloader_params" : {"trainloader" : {"batch_size" : 512, 
                                    "num_workers" : 12,
                                    "shuffle": true, 
                                     "pin_memory" : true},
@@ -122,25 +140,25 @@
                                     "pin_memory" : true}
                   },
     
-"model_params" : {"backbone_type": "resnet50",
-                  "pretrained" : true,
+"model_params" : {"backbone_type": "DLA",
+                  "pretrained" : false,
                   "freeze_backbone" : false
                   },
 
 "optimization_params" : {
     "default" : {"optimizer" : {
                     "type" : "Adam",
-                    "params" : {"lr" : 2e-4,
+                    "params" : {"lr" : 2e-3,
                                 "weight_decay" : 1e-4}
                             },
                 "scheduler" : {
-                    "type" : "MultiStepLR",
+                    "type" : "OneCycleLR",
                     "params" : {"ReduceLROnPlateau" : {"mode" : "max",
                                                     "factor" : 0.1,
                                                     "patience" : 2, 
                                                     "verbose" : true},
                                 "OneCycleLR" : [],
-                                "MultiStepLR" : {"milestones": [10], 
+                                "MultiStepLR" : {"milestones": [7], 
                                                  "gamma" : 0.1},
                                 "CosineAnnealingLR" : {"T_max": 200}                 
                                }
@@ -150,11 +168,11 @@
             },
 
         
-"training_params" : {"model_name" : "testmodel",
-                   "grad_clipping" : 0,
+"training_params" : {"model_name" : "testmodel-DLA",
+                   "grad_clipping" : 1.0,
                    "restore_session" : false,
                     "restore_only_model": false,
-                   "epochs" : 5,
+                   "epochs" : 50,
                    "val_every" : 1,
                    "save_every" : 1,
                    "save_best_model": true,
@@ -162,13 +180,24 @@
                   },
     
 "system_params" : {"use_all_GPUs" : false,
-                   "which_GPUs": "0",
+                   "which_GPUs": "1",
                    "use_GPU" : true
                   },
     
 "log_params" : {"project_name" : "SWAP_with_DDP",
                 "run_name": "DEFINED_BY_MODEL_NAME"
-                }
+                },
+    
+"lr_finder" : {"type": "grid_search",
+                       "grid_search_params": {"min_pow" : -5, 
+                                            "max_pow" : -2, 
+                                            "resolution" : 25, 
+                                            "n_epochs" : 5, 
+                                            "random_lr" : false,
+                                            "keep_schedule" : false,
+                                            "report_intermediate_steps" : false
+                                             }
+            }    
 
 }
 

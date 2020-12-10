@@ -84,7 +84,7 @@ class DefaultWrapper:
                           "steps_per_epoch":len(self.dataloaders.trainloader), 
                           "epochs":self.training_params.epochs,
                           "div_factor": max_lr/1e-8,
-                         "final_div_factor": max_lr/1e-6}
+                         "final_div_factor": 1e-3}
         else:
             sch_params = self.optimization_params.default.scheduler.params[self.scheduler_type]
         return sch(self.optimizer, **sch_params) 

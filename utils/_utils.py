@@ -59,3 +59,4 @@ def compute_stats(dataloader):
     channel_avr = x_tot/len(dataloader)
     channel_std = np.sqrt(x2_tot/len(dataloader) - channel_avr**2)
     return channel_avr,channel_std
+

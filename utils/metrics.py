@@ -7,6 +7,7 @@ class DefaultClassificationMetrics:
     
     def __init__(self, n_classes, int_to_labels=None, act_threshold=0.5, mode=""):
         self.mode = mode
+        self.n_classes = n_classes
         self.prefix = ""
         if mode:
             self.prefix = mode + "_"
@@ -14,9 +15,15 @@ class DefaultClassificationMetrics:
         if int_to_labels is None:
             int_to_labels = {val:'class_'+str(val) for val in range(n_classes)}
         self.int_to_labels = int_to_labels
-        self.confusion_matrix = np.zeros((n_classes, n_classes))
+        self.confusion_matrix = np.zeros((self.n_classes, self.n_classes))
         self.truths = []
         self.predictions = []
+        
+    def reset(self):
+        self.confusion_matrix = np.zeros((self.n_classes, self.n_classes))
+        self.truths = []
+        self.predictions = []        
+        
     
     # add predictions to confusion matrix etc
     def add_preds(self, y_pred, y_true):

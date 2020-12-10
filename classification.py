@@ -59,6 +59,8 @@ def main(parameters, args):
 
     if args.test:
         trainer.test()
+    elif args.find_lr:
+        trainer.lr_grid_search(**wrapper.parameters.lr_finder.grid_search_params)        
     else:
         trainer.train()
         trainer.test()

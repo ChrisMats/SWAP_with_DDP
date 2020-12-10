@@ -21,7 +21,7 @@ class BaseSet(Dataset):
             setattr(self, key, param_dict[key])
 
     def get_trans_list(self, transform_dict):
-        transform_list = []            
+        transform_list = []   
             
         if transform_dict['VerticalFlip']:
             transform_list.append(RandomVerticalFlip(p=0.5))
@@ -48,8 +48,10 @@ class BaseSet(Dataset):
                                              transform_dict['CenterCrop']['width'])))
             
         if transform_dict['RandomCrop']['apply']:
+            padding = transform_dict['RandomCrop']['padding']
             transform_list.append(RandomCrop((transform_dict['RandomCrop']['height'],
-                                         transform_dict['RandomCrop']['width'])))     
+                                         transform_dict['RandomCrop']['width']),
+                                        padding=padding if padding > 0 else None))     
             
         if transform_dict['RandomPerspective']['apply']:
             (RandomPerspective(transform_dict['RandomPerspective']['distortion_scale']))
@@ -64,7 +66,13 @@ class BaseSet(Dataset):
         transform_list.append(ToTensor())
         if transform_dict['Normalize']:
             transform_list.append(Normalize(mean=self.mean, 
-                                            std=self.std))   
+                                            std=self.std)) 
+        if transform_dict['RandomErasing']['apply']:
+            temp_d = transform_dict['RandomErasing']
+            transform_list.append(RandomErasing(scale=temp_d['scale'],
+                                              ratio=temp_d['ratio'], 
+                                              value=temp_d['value']))             
+        
         return transform_list
 
 
@@ -295,7 +303,8 @@ class BaseTrainer:
         print("Start training with learning rate: {}".format(self.get_lr()))    
             
     def logging(self, logging_dict):
-        wandb.log(logging_dict, step=self.iters)                  
+        wandb.log(logging_dict, step=self.iters)    
+             
         
     @property
     def device_id(self):    

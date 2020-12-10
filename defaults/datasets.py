@@ -23,19 +23,19 @@ class Cifar10(BaseSet, CIFAR10):
         self.labels_to_int = self.class_to_idx
         self.int_to_labels = {val:key for key,val in self.labels_to_int.items()}     
         
-#         # split train / val
-#         if self.mode != 'test':
-#             val_id_json = os.path.join(root_dir, 'val_ids.json')
-#             train_ids, val_ids = self.get_validation_ids(total_size=len(self.data), 
-#                                                          val_size=self.validation_size, 
-#                                                          json_path=val_id_json, 
-#                                                          dataset_name=self.name)
-#             if self.mode == 'train':
-#                 used_ids = train_ids
-#             elif self.mode in ['val', 'eval']:
-#                 used_ids = val_ids
-#             else:
-#                 raise ValueError("\"{}\" is not a valid mode. Please select one from [train, val, test]")
+        # split train / val
+        if self.mode != 'test':
+            val_id_json = os.path.join(root_dir, 'val_ids.json')
+            train_ids, val_ids = self.get_validation_ids(total_size=len(self.data), 
+                                                         val_size=self.validation_size, 
+                                                         json_path=val_id_json, 
+                                                         dataset_name=self.name)
+            if self.mode == 'train':
+                used_ids = train_ids
+            elif self.mode in ['val', 'eval']:
+                used_ids = val_ids
+            else:
+                raise ValueError("\"{}\" is not a valid mode. Please select one from [train, val, test]")
 
-#             self.data = self.data[used_ids]
-#             self.targets = [self.targets[idx] for idx in used_ids]    
+            self.data = self.data[used_ids]
+            self.targets = [self.targets[idx] for idx in used_ids]    
