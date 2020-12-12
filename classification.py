@@ -10,6 +10,8 @@ import argparse
 import torch
 from defaults import *
 from utils.system_def import *
+from utils.launch import launch
+import torch.distributed as dist
 
 
 global debug
@@ -42,21 +44,22 @@ def main(parameters, args):
     wrapper.instantiate()
 
     # initialize logger
-    log_params = wrapper.parameters.log_params    
-    training_params = wrapper.parameters.training_params
-    if wrapper.log_params['run_name'] == "DEFINED_BY_MODEL_NAME":
-        log_params['run_name'] = training_params.model_name  
-    if args.debug:
-        os.environ['WANDB_MODE'] = 'dryrun'
-    if not (args.test or args.find_lr):
-        wandb.init(project=log_params.project_name, 
-                   name=log_params.run_name, 
-                   config=wrapper.parameters,
-                  resume=True if training_params.restore_session else False)
+    if wrapper.is_rank0:
+        log_params = wrapper.parameters.log_params    
+        training_params = wrapper.parameters.training_params
+        if wrapper.log_params['run_name'] == "DEFINED_BY_MODEL_NAME":
+            log_params['run_name'] = training_params.model_name  
+        if args.debug:
+            os.environ['WANDB_MODE'] = 'dryrun'
+        if not (args.test or args.find_lr):
+            wandb.init(project=log_params.project_name, 
+                       name=log_params.run_name, 
+                       config=wrapper.parameters,
+                      resume=True if training_params.restore_session else False)
     
     # define trainer 
     trainer = Trainer(wrapper)
-
+    
     if args.test:
         trainer.test()
     elif args.find_lr:
@@ -69,5 +72,13 @@ def main(parameters, args):
 if __name__ == '__main__':
     args = parse_arguments()
     parameters = edict(load_params(args))
-    main(parameters, args)
+    try:
+        launch(main, (parameters, args))
+    except Exception as e:
+        if dist.is_initialized():
+            dist.destroy_process_group()          
+        raise e
+    finally:
+        if dist.is_initialized():
+            dist.destroy_process_group()            
     

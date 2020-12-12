@@ -1,5 +1,6 @@
 import wandb
 from .bases import *
+import torch.distributed as dist
         
 class Trainer(BaseTrainer):
     def __init__(self, wraped_defs):
@@ -18,10 +19,7 @@ class Trainer(BaseTrainer):
         self.scheduler = wraped_defs.scheduler
         self.scheduler_type = wraped_defs.scheduler_type
         self.metric_fn = wraped_defs.metric
-        
-        self.visible_world = self.model.visible_world
-        self.base_id = torch.cuda.current_device()
-        
+                
         self.org_model_state = model_to_CPU_state(self.model)
         self.org_optimizer_state = opimizer_to_CPU_state(self.optimizer)
         self.total_step = len(self.trainloader)        
@@ -34,13 +32,20 @@ class Trainer(BaseTrainer):
             self.load_session(self.restore_only_model)
         self.print_train_init()
         
-        metric = self.metric_fn(self.model.n_classes, self.trainloader.dataset.int_to_labels, mode="train")
+        if is_parallel(self.model):
+            n_classes = self.model.module.n_classes            
+        else:
+            n_classes = self.model.n_classes
+        metric = self.metric_fn(n_classes, self.trainloader.dataset.int_to_labels, mode="train")
         epoch_bar = range(self.epoch0 + 1, self.epoch0 + self.epochs + 1)
-        epoch_bar = tqdm(epoch_bar, desc='Epoch', leave=False)
+        if self.is_rank0:
+            epoch_bar = tqdm(epoch_bar, desc='Epoch', leave=False)
+            
         for self.epoch in epoch_bar:
             self.model.train() 
             iter_bar = enumerate(self.trainloader)
-            iter_bar = tqdm(iter_bar, desc='Training', leave=False, total=len(self.trainloader))
+            if self.is_rank0:
+                iter_bar = tqdm(iter_bar, desc='Training', leave=False, total=len(self.trainloader))
             
             for it, batch in iter_bar:
                 self.iters += 1
@@ -49,12 +54,14 @@ class Trainer(BaseTrainer):
                 if self.val_every != np.inf:
                     if self.iters % int(self.val_every * self.epoch_steps) == 0: 
                         self.epoch_step()
-                        self.model.train() 
+                        self.model.train()         
+                        
+                synchronize()        
                         
             if self.scheduler_type in ['MultiStepLR', 'CosineAnnealingLR']:
                 self.scheduler.step()                        
-                
-        print(" ==> Training done")
+        if self.is_rank0:         
+            print(" ==> Training done")
         if not self.is_grid_search:
             self.evaluate()
             self.save_session(verbose=True)
@@ -79,16 +86,18 @@ class Trainer(BaseTrainer):
         if self.scheduler_type == 'OneCycleLR':
             self.scheduler.step()        
     
-        if not self.is_grid_search:
+        if not self.is_grid_search and self.is_rank0:
             if self.iters % self.log_every == 0 or self.iters == 1:
+#                 Maybe an dist.all_reduce here to get the avg loss?
                 self.logging({'train_loss': loss.item(),
                              'learning_rate': self.get_lr()})
                 self.logging(metric.get_value())     
                 metric.reset()
                 
     
-    def epoch_step(self, **kwargs):          
+    def epoch_step(self, **kwargs): 
         self.evaluate()
+        
         if not self.is_grid_search:
             self.save_session()        
 
@@ -99,6 +108,7 @@ class Trainer(BaseTrainer):
                     self.scheduler.step(self.val_acc)
                 
     def evaluate(self, dataloader=None, report_cm=False, **kwargs):
+        if not self.is_rank0: return        
         self.model.eval()
         if dataloader == None:
             dataloader=self.valloader
@@ -108,8 +118,11 @@ class Trainer(BaseTrainer):
             self.model.train()
             return
         val_loss = edict()
-        n_classes = self.model.n_classes
-        metric = self.metric_fn(self.model.n_classes, dataloader.dataset.int_to_labels, mode="val")
+        if is_parallel(self.model):
+            n_classes = self.model.module.n_classes            
+        else:
+            n_classes = self.model.n_classes
+        metric = self.metric_fn(n_classes, dataloader.dataset.int_to_labels, mode="val")
         iter_bar = tqdm(dataloader, desc='Validating', leave=False, total=len(dataloader))
         
         val_loss = []
@@ -118,9 +131,11 @@ class Trainer(BaseTrainer):
                 labels = labels.to(self.device_id, non_blocking=True)
                 images = images.to(self.device_id, non_blocking=True)                   
                 
-                outputs = self.model(images)                               
+                outputs = self.model.module(images)                               
                 loss = self.criterion(outputs, labels)
-                
+#                 Maybe an dist.all_reduce here to get the avg loss?
+#                 Maybe an dist.all_gather here to get all the predictions?
+                        # Maybe later when get_value (?)
                 val_loss.append(loss.item())
                 metric.add_preds(outputs, labels)
         
@@ -140,10 +155,10 @@ class Trainer(BaseTrainer):
                 self.best_val_loss = self.val_loss                    
             if not self.save_best_model:
                 self.best_model = model_to_CPU_state(self.model)                 
-                
         self.model.train()
     
     def test(self, dataloader=None, **kwargs):
+        if not self.is_rank0: return
         self.test_mode = True
         self.restore_session = True
         self.restore_only_model = True
@@ -158,7 +173,11 @@ class Trainer(BaseTrainer):
 
         test_loss = []
         results = edict()
-        metric = self.metric_fn(self.model.n_classes, dataloader.dataset.int_to_labels, mode="test")
+        if is_parallel(self.model):
+            n_classes = self.model.module.n_classes            
+        else:
+            n_classes = self.model.n_classes        
+        metric = self.metric_fn(n_classes, dataloader.dataset.int_to_labels, mode="test")
         iter_bar = tqdm(dataloader, desc='Testing', leave=True, total=len(dataloader))
         
         with torch.no_grad():
@@ -275,3 +294,5 @@ class Trainer(BaseTrainer):
         axs[1].set_xscale('log')
         plt.savefig(os.path.join(res_dir, pref_m + '_grid_search_out.png'))   
         
+        
+   

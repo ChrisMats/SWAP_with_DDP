@@ -4,7 +4,16 @@ Repo for the ScaDaMaLe project
 
 ## TO DO:
 - [x] Basic training for CIFAR10
+- [ ] (Optional) Finetune model and hyperparameters
 - [ ] Vanila DDP - Single server
+    - [ ] Basic DDP handlers and launch defs
+    - [ ] Divice_id everywhere 
+    - [ ] Dataloaders
+    - [ ] Training loop
+    - [ ] Logging (vanila)    
+    - [ ] Evaluation (vanila)        
+    - [ ] Save / load
+
 - [ ] Final DDP - multiple servers
 - [ ] SWAP
 - [ ] Fix readme 

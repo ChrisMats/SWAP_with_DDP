@@ -14,7 +14,7 @@ def compute_stats(dataloader):
     return channel_avr,channel_std
         
 def model_to_CPU_state(net):
-    if isinstance(net, torch.nn.DataParallel):
+    if is_parallel(net):
         state_dict = {k: deepcopy(v.cpu()) for k, v in net.module.state_dict().items()}
     else:
         state_dict = {k: deepcopy(v.cpu()) for k, v in net.state_dict().items()}

@@ -211,7 +211,6 @@ class BaseModel(nn.Module):
     @property
     def visible_ids(sefl):
         return list(range(torch.cuda.device_count()))
-#         return os.environ["CUDA_VISIBLE_DEVICES"].split(',')       
     
     @property
     def device_id(self):    
@@ -242,11 +241,12 @@ class BaseTrainer:
             setattr(self, key, param_dict[key])
             
     def reset(self):
-        if isinstance(self.model, torch.nn.DataParallel):
+        if is_parallel(self.model):
             self.model.module.load_state_dict(self.org_model_state)
+            self.model.module.to(self.model.module.device_id)            
         else:
             self.model.load_state_dict(self.org_model_state)
-        self.model.to(self.model.device_id)
+            self.model.to(self.model.device_id)
         self.optimizer.load_state_dict(self.org_optimizer_state)
         print(" Model and optimizer are restored to their initial states ")
         
@@ -255,7 +255,7 @@ class BaseTrainer:
         if os.path.isfile(self.model_path) and self.restore_session:        
             print("Loading model from {}".format(self.model_path))
             checkpoint = torch.load(self.model_path)
-            if isinstance(self.model, torch.nn.DataParallel):
+            if is_parallel(self.model):
                 self.model.module.load_state_dict(checkpoint['state_dict'])
             else:
                 self.model.load_state_dict(checkpoint['state_dict'])
@@ -288,33 +288,39 @@ class BaseTrainer:
             self.model_path = os.path.abspath(model_path)
         
     def save_session(self, model_path=None, verbose=False):
-        self.get_saved_model_path(model_path=model_path)
-        if verbose:
-            print("Saving model as {}".format(self.model_name) )
-        state = {'iters': self.iters, 'state_dict': self.best_model,
-                 'optimizer': opimizer_to_CPU_state(self.optimizer), 'epoch': self.epoch,
-                'parameters' : self.parameters}
-        torch.save(state, self.model_path)
+        if self.is_rank0:
+            self.get_saved_model_path(model_path=model_path)
+            if verbose:
+                print("Saving model as {}".format(self.model_name) )
+            state = {'iters': self.iters, 'state_dict': self.best_model,
+                     'optimizer': opimizer_to_CPU_state(self.optimizer), 'epoch': self.epoch,
+                    'parameters' : self.parameters}
+            torch.save(state, self.model_path)
+        synchronize()
         
     def get_lr(self):
         return self.optimizer.param_groups[0]['lr']
         
     def print_train_init(self):
-        print("Start training with learning rate: {}".format(self.get_lr()))    
+        if self.is_rank0: 
+            print("Start training with learning rate: {}".format(self.get_lr()))    
             
     def logging(self, logging_dict):
+        if not self.is_rank0: return
         wandb.log(logging_dict, step=self.iters)    
              
-        
+    @property
+    def visible_world(self):
+        return torch.cuda.device_count()   
+   
+    @property
+    def visible_ids(sefl):
+        return list(range(torch.cuda.device_count()))
+    
     @property
     def device_id(self):    
-        did = torch.cuda.current_device() 
-        assert self.base_id == did
-        assert self.model.base_id == did
-        return did      
+        return torch.cuda.current_device() 
     
     @property
     def is_rank0(self):
-        return is_rank0(self.device_id)
-    
-    
+        return is_rank0(self.device_id)       

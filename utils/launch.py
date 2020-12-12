@@ -41,7 +41,7 @@ def launch(main_func, args=()):
     Launch multi-gpu or distributed training.
     This function must be called on all machines involved in the training.
     It will spawn child processes (defined by ``num_gpus_per_machine`) on each machine.
-    ssume everything is happening on a single node!
+    Assume everything is happening on a single node!
     """
     
     params = args[0]

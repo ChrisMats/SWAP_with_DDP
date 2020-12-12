@@ -180,7 +180,7 @@
                   },
     
 "system_params" : {"use_all_GPUs" : false,
-                   "which_GPUs": "1",
+                   "which_GPUs": "0,1",
                    "use_GPU" : true
                   },
     

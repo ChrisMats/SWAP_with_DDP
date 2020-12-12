@@ -78,3 +78,13 @@ def iszero(x):
 
 def is_rank0(device_id):
     return device_id == 0
+
+def is_ddp(_class):
+    return isinstance(_class, torch.nn.parallel.DistributedDataParallel)
+    
+def is_dp(_class):    
+    return isinstance(_class, torch.nn.DataParallel)
+    
+def is_parallel(_class):
+    return is_dp(_class) or is_ddp(_class)
+

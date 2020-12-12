@@ -2,6 +2,10 @@ from .models import *
 from .datasets import *
 from utils.helpfuns import *
 
+import torch.distributed as dist
+from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.utils.data.distributed import DistributedSampler as DS
+
 class DefaultWrapper:
     def __init__(self, parameters):
         super().__init__()
@@ -12,7 +16,8 @@ class DefaultWrapper:
         
     def instantiate(self):        
         # init and get dataloaders
-        print("Initialising Dataloaders . . .")
+        if self.is_rank0:
+            print("Initialising Dataloaders . . .")
         self.dataloaders = self.init_dataloaders()
         img_channels = self.dataloaders.trainloader.dataset.img_channels
         n_classes = self.dataloaders.trainloader.dataset.n_classes
@@ -20,10 +25,12 @@ class DefaultWrapper:
         self.model_params.n_classes = n_classes
         
         # init and get model
-        print("Initialising Model . . .")        
+        if self.is_rank0:        
+            print("Initialising Model . . .")        
         self.model = self.init_model()  
         
-        print("Initialising Optimization methods . . ")                
+        if self.is_rank0:        
+            print("Initialising Optimization methods . . ")                
         # init and get optimizer
         self.optimizer = self.init_optimizers()  
         
@@ -42,13 +49,21 @@ class DefaultWrapper:
         trainset = Cifar10(self.dataset_params, mode='train')
         valset = Cifar10(self.dataset_params, mode='eval')
         testset = Cifar10(self.dataset_params, mode='test')
+        
+        # distributed sampler 
+        if self.visible_world > 1 and dist.is_initialized():        
+            train_sampler = DS(trainset, num_replicas=self.visible_world, rank=self.device_id)
+            self.dataloader_params['trainloader']['shuffle'] = False
+            
+        else:
+            train_sampler = None
 
         # define distributed samplers etc
-        trainLoader = DataLoader(trainset, **self.dataloader_params['trainloader'])
+        trainLoader = DataLoader(trainset, **self.dataloader_params['trainloader'],sampler=train_sampler)
         valLoader = DataLoader(valset, **self.dataloader_params['valloader'])
         testLoader = DataLoader(testset, **self.dataloader_params['testloader'])
         
-        if not len(valLoader):
+        if not len(valLoader) and self.is_rank0:
             warnings.warn("Warning... Using test set as validation set")
             valLoader = testLoader
 
@@ -57,9 +72,15 @@ class DefaultWrapper:
                        'testloader' : testLoader,})
         
 
-    def init_model(self):        
+    def init_model(self):      
+    # DDP broadcasts model states from rank 0 process to all other processes 
+    # in the DDP constructor, you don’t need to worry about different DDP processes 
+    # start from different model parameter initial values.
+  
         model =  Classifier(self.model_params)
-        model.to(model.device_id)
+        model.to(self.device_id)
+        if self.visible_world > 1 and torch.distributed.is_initialized():
+            model = DDP(model, device_ids=[self.device_id])
         return model
     
     def init_optimizers(self):    
@@ -98,5 +119,21 @@ class DefaultWrapper:
     def parameters(self):
         return edict({key : getattr(self, key) 
                       for key in self.param_attributes})
+    
+    @property
+    def visible_world(self):
+        return torch.cuda.device_count()   
+   
+    @property
+    def visible_ids(sefl):
+        return list(range(torch.cuda.device_count()))
+    
+    @property
+    def device_id(self):    
+        return torch.cuda.current_device() 
+    
+    @property
+    def is_rank0(self):
+        return is_rank0(self.device_id)    
     
     
