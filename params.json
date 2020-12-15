@@ -127,15 +127,15 @@
                   },
     
 "dataloader_params" : {"trainloader" : {"batch_size" : 512, 
-                                   "num_workers" : 12,
+                                   "num_workers" : 1,
                                    "shuffle": true, 
                                     "pin_memory" : true},
                    "valloader" : {"batch_size" : 100, 
-                                   "num_workers" : 12,
+                                   "num_workers" : 1,
                                    "shuffle": false, 
                                     "pin_memory" : true},
                    "testloader" : {"batch_size" : 100, 
-                                   "num_workers" : 12,
+                                   "num_workers" : 1,
                                    "shuffle": true, 
                                     "pin_memory" : true}
                   },

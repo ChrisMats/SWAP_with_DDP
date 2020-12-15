@@ -11,6 +11,7 @@ def get_device_type(verbose=False):
             for i in range(torch.cuda.device_count()): 
                 print("GPU {}: {}".format(i+1, torch.cuda.get_device_name(i)))
     torch.backends.cudnn.benchmark = True
+    torch.backends.cudnn.enabled = True
     return device
     
 def define_system_params(params):

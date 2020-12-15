@@ -259,7 +259,7 @@ class BaseTrainer:
                 self.model.module.load_state_dict(checkpoint['state_dict'])
             else:
                 self.model.load_state_dict(checkpoint['state_dict'])
-            self.model.to(self.model.device_id)
+            self.model.to(self.device_id)
             self.org_model_state = model_to_CPU_state(self.model)
             self.best_model = deepcopy(self.org_model_state)
             if restore_only_model:

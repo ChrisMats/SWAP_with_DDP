@@ -185,7 +185,7 @@ class Trainer(BaseTrainer):
                 labels = labels.to(self.device_id, non_blocking=True)
                 images = images.to(self.device_id, non_blocking=True)                   
                 
-                outputs = self.model(images)                               
+                outputs = self.model.module(images)                               
                 loss = self.criterion(outputs, labels)
                 
                 test_loss.append(loss.item())
