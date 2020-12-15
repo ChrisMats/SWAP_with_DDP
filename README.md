@@ -3,20 +3,25 @@ Repo for the ScaDaMaLe project
 
 
 ## TO DO:
-- [x] Basic training for CIFAR10
+- [x] Basic training for CIFAR10 :heavy_check_mark:
 - [ ] (Optional) Finetune model and hyperparameters
-- [ ] Vanila DDP - Single server
-    - [ ] Basic DDP handlers and launch defs
-    - [ ] Divice_id everywhere 
-    - [ ] Dataloaders
-    - [ ] Training loop
-    - [ ] Logging (vanila)    
-    - [ ] Evaluation (vanila)        
-    - [ ] Save / load
+- [x] Vanila DDP - Single server :heavy_check_mark:
+    - [x] Basic DDP handlers and launch defs
+    - [x] Device_id everywhere 
+    - [x] Dataloaders
+    - [x] Training loop
+    - [x] Logging (vanila)    
+    - [x] Evaluation (vanila)        
+    - [x] Save / load
+    - [x] Fix issue that cause bottlenecks after each epoch (fixed: n_workers<2)
 
 - [ ] Final DDP - multiple servers
+    - [ ] (optional) work with SLURM
+    - [ ] work on multiple servers  
+    - [ ] DDP on log/eval etc     
 - [ ] SWAP
 - [ ] Fix readme 
+- [ ] Clean up code 
 
 
 ## Stochastic Weight Averaging in Parallel (SWAP) in PyTorch
