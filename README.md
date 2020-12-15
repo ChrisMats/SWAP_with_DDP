@@ -19,7 +19,7 @@ Repo for the ScaDaMaLe project
     - [ ] (optional) work with SLURM
     - [ ] work on multiple servers  
     - [ ] DDP on log/eval etc     
-- [ ] SWAP
+- [ ] [SWAP](https://openreview.net/pdf?id=rygFWAEFwS)
 - [ ] Fix readme 
 - [ ] Clean up code 
 
