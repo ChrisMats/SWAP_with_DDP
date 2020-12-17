@@ -28,13 +28,15 @@ def parse_arguments():
     parser.add_argument('--find_lr', action='store_true', default=False, help= 'Flag for lr finder')
     parser.add_argument('--debug', action='store_true', default=False, help= 'Flag for turning on the debug_mode')
     parser.add_argument('--data_location', type=str, required=False, help= 'Update the datapath')
+    parser.add_argument('--dist_url', type=str, default='', required=False,
+                        help= 'URL of master node, for use with SLURM')
     return parser.parse_args()
 
 
 def main(parameters, args):
 
     if args.data_location:
-        dataset_params['data_location'] = args.data_location   
+        parameters['dataset_params']['data_location'] = args.data_location
         
     # define system
     define_system_params(parameters.system_params)
