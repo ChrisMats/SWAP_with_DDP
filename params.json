@@ -126,7 +126,7 @@
                                          }
                   },
     
-"dataloader_params" : {"trainloader" : {"batch_size" : 512, 
+"dataloader_params" : {"trainloader" : {"batch_size" : 64, 
                                    "num_workers" : 1,
                                    "shuffle": true, 
                                     "pin_memory" : true},
