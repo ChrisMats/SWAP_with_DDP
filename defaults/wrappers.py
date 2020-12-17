@@ -60,6 +60,7 @@ class DefaultWrapper:
 
         # define distributed samplers etc
         trainLoader = DataLoader(trainset, **self.dataloader_params['trainloader'],sampler=train_sampler)
+        nonddp_trainloader = DataLoader(trainset, **self.dataloader_params['trainloader'])
         valLoader = DataLoader(valset, **self.dataloader_params['valloader'])
         testLoader = DataLoader(testset, **self.dataloader_params['testloader'])
         
@@ -69,7 +70,9 @@ class DefaultWrapper:
 
         return edict({'trainloader': trainLoader, 
                        'valloader' : valLoader,
-                       'testloader' : testLoader,})
+                       'testloader' : testLoader,
+                       'nonddp_trainloader': nonddp_trainloader,
+                       })
         
 
     def init_model(self):      

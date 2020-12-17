@@ -25,6 +25,10 @@ class Trainer(BaseTrainer):
         self.total_step = len(self.trainloader)        
         self.report_intermediate_steps = True     
         self.best_model = deepcopy(self.org_model_state)
+
+
+        # json this shit
+        self.second_phase_start_epoch = 3
         
     def train(self):
         self.test_mode = False
@@ -47,16 +51,24 @@ class Trainer(BaseTrainer):
             if self.is_rank0:
                 iter_bar = tqdm(iter_bar, desc='Training', leave=False, total=len(self.trainloader))
             
+            if self.epoch == self.second_phase_start_epoch:
+                print("Switching to the 2nd phase of training...")
+                self.trainloader = self.nonddp_trainloader
+                import copy
+                self.model = copy.deepcopy(self.model.module)
+                # I can't figure out how to re-init the optimizer using the wrapper thing
+                self.optimizer = torch.optim.Adam(self.model.parameters(), lr=2e-3, weight_decay=1e-4)
+
             for it, batch in iter_bar:
                 self.iters += 1
                 self.global_step(batch=batch, metric=metric, it=it)   
                 
                 if self.val_every != np.inf:
                     if self.iters % int(self.val_every * self.epoch_steps) == 0: 
-                        self.epoch_step()
+                        self.epoch_step()  
                         self.model.train()         
                         
-                synchronize()        
+                synchronize()               
                         
             if self.scheduler_type in ['MultiStepLR', 'CosineAnnealingLR']:
                 self.scheduler.step()                        
@@ -99,7 +111,12 @@ class Trainer(BaseTrainer):
         self.evaluate()
         
         if not self.is_grid_search:
-            self.save_session()        
+            if self.epoch<self.second_phase_start_epoch:
+                # self.save_session()  
+                # just for debugging, keep next line commented out (and unccomment the previous one)
+                self.save_parallel_models(verbose=True, include_epochs=True)  
+            else:
+                self.save_parallel_models(verbose=True, include_epochs=True)     
 
             if self.scheduler_type == 'ReduceLROnPlateau':
                 if self.scheduler.mode == 'min':
@@ -131,7 +148,10 @@ class Trainer(BaseTrainer):
                 labels = labels.to(self.device_id, non_blocking=True)
                 images = images.to(self.device_id, non_blocking=True)                   
                 
-                outputs = self.model.module(images)                               
+                if is_parallel(self.model):
+                    outputs = self.model.module(images) 
+                else:
+                    outputs = self.model(images)                     
                 loss = self.criterion(outputs, labels)
 #                 Maybe an dist.all_reduce here to get the avg loss?
 #                 Maybe an dist.all_gather here to get all the predictions?

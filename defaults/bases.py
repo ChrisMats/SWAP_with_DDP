@@ -297,6 +297,28 @@ class BaseTrainer:
                     'parameters' : self.parameters}
             torch.save(state, self.model_path)
         synchronize()
+
+    def save_parallel_models(self, model_path=None, verbose=False, include_epochs=False):
+        self.get_saved_model_path(model_path=model_path)
+        # I don't understand the udnerlying stuff, so I am just hacking things in
+        if include_epochs:
+            self.model_path = self.model_path + '_epoch{}'.format(self.epoch)
+        rank = self.device_id
+        self.model_path = self.model_path + '_rank{}'.format(rank)
+        if verbose:
+            print("Saving model as {}".format(self.model_name) )
+        
+        # couldn't make it work with the best_model so I hacked it
+        synchronize()
+        for param in self.model.parameters():
+            break
+        device_id = param.device.index
+        state = {'device': device_id,
+            'iters': self.iters, 'state_dict': self.model.state_dict(),
+                    'optimizer': opimizer_to_CPU_state(self.optimizer), 'epoch': self.epoch,
+                'parameters' : self.parameters}
+        torch.save(state, self.model_path)
+        synchronize()
         
     def get_lr(self):
         return self.optimizer.param_groups[0]['lr']
