@@ -22,7 +22,11 @@ Repo for the ScaDaMaLe project
     - [ ] (optional) work with SLURM
     - [ ] work on multiple servers  
     - [ ] DDP on log/eval etc     
-- [ ] [SWAP](https://openreview.net/pdf?id=rygFWAEFwS)
+- [x] [SWAP](https://openreview.net/pdf?id=rygFWAEFwS) :heavy_check_mark:
+    - [x] model handling
+    - [x] proper averaging
+    - [x] dataloader handling    
+    - [x] saver handling        
 - [ ] Fix readme 
 - [ ] Clean up code 
 
