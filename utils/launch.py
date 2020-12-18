@@ -73,9 +73,6 @@ def launch(main_func, args=()):
         port = 45124 #_find_free_port() TODO: Investigate this, it seems to fail
         dist_url = f"tcp://{arguments.dist_url}:{port}"
 
-        import time
-        time.sleep(5)
-
         dist.init_process_group(
             backend="NCCL",
             init_method=dist_url,
