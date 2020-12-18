@@ -16,12 +16,10 @@ Repo for the ScaDaMaLe project
     - [x] Fix issue that cause bottlenecks after each epoch (fixed: n_workers<2)
 
 - [ ] Final DDP - multiple servers
-    - [x] Logging (distributed)    
-    - [x] Evaluation (distributed) 
     - [ ] BatchNorm (distributed)     
     - [ ] (optional) work with SLURM
     - [ ] work on multiple servers  
-    - [ ] DDP on log/eval etc     
+    - [x] DDP on log/eval etc     
 - [x] [SWAP](https://openreview.net/pdf?id=rygFWAEFwS) :heavy_check_mark:
     - [x] model handling
     - [x] proper averaging
