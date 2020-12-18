@@ -17,8 +17,8 @@ Repo for the ScaDaMaLe project
 
 - [ ] Final DDP - multiple servers
     - [ ] BatchNorm (distributed)     
-    - [ ] (optional) work with SLURM
-    - [ ] work on multiple servers  
+    - [x] work with SLURM
+    - [x] work on multiple servers  
     - [x] DDP on log/eval etc     
     - [ ] Fix issue that causes the freezing while exiting the main
 - [x] [SWAP](https://openreview.net/pdf?id=rygFWAEFwS) :heavy_check_mark:
