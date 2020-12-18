@@ -126,7 +126,7 @@
                                          }
                   },
     
-"dataloader_params" : {"trainloader" : {"batch_size" : 64, 
+"dataloader_params" : {"trainloader" : {"batch_size" : 512, 
                                    "num_workers" : 1,
                                    "shuffle": true, 
                                     "pin_memory" : true},
@@ -136,7 +136,7 @@
                                     "pin_memory" : true},
                    "testloader" : {"batch_size" : 100, 
                                    "num_workers" : 1,
-                                   "shuffle": true, 
+                                   "shuffle": false, 
                                     "pin_memory" : true}
                   },
     
@@ -157,14 +157,33 @@
                                                     "factor" : 0.1,
                                                     "patience" : 2, 
                                                     "verbose" : true},
-                                "OneCycleLR" : [],
+                                "OneCycleLR" : {"anneal_strategy" : "linear"},
                                 "MultiStepLR" : {"milestones": [7], 
                                                  "gamma" : 0.1},
                                 "CosineAnnealingLR" : {"T_max": 200}                 
                                }
     
                             }
-                   }
+                   },
+    "second_phase" : {"optimizer" : {
+                    "type" : "Adam",
+                    "params" : {"lr" : 2e-3,
+                                "weight_decay" : 1e-4}
+                            },
+                "scheduler" : {
+                    "type" : "CosineAnnealingLR",
+                    "params" : {"ReduceLROnPlateau" : {"mode" : "max",
+                                                    "factor" : 0.1,
+                                                    "patience" : 2, 
+                                                    "verbose" : true},
+                                "OneCycleLR" : {"anneal_strategy" : "linear"},
+                                "MultiStepLR" : {"milestones": [7], 
+                                                 "gamma" : 0.1},
+                                "CosineAnnealingLR" : {"T_max": 10}                 
+                               }
+    
+                            }
+                   }    
             },
 
         
@@ -172,10 +191,11 @@
                    "grad_clipping" : 1.0,
                    "restore_session" : false,
                     "restore_only_model": false,
-                   "epochs" : 50,
+                   "epochs" : 2,
+                    "second_phase_start_epoch" : 1,
                    "val_every" : 1,
                    "save_every" : 1,
-                   "save_best_model": true,
+                   "save_best_model": false,
                    "log_every" : 100
                   },
     

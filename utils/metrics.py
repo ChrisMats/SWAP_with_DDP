@@ -2,6 +2,7 @@ import torch
 import numpy as np
 from sklearn import metrics
 from easydict import EasyDict as edict
+from ._utils import *
 
 class DefaultClassificationMetrics:
     
@@ -26,7 +27,10 @@ class DefaultClassificationMetrics:
         
     
     # add predictions to confusion matrix etc
-    def add_preds(self, y_pred, y_true):
+    def add_preds(self, y_pred, y_true, use_ddp=False):
+        if use_ddp:
+            y_pred = dist_gather_tensor(y_pred)
+            y_true = dist_gather_tensor(y_true)
         y_pred = y_pred.max(dim = 1)[1].data
         y_true = y_true.flatten().detach().cpu().numpy()
         y_pred = y_pred.flatten().detach().cpu().numpy()
@@ -36,7 +40,8 @@ class DefaultClassificationMetrics:
     
     
     # Calculate and report metrics
-    def get_value(self):
+    def get_value(self, use_ddp=False, device_id=0):
+        
         # I only added accuracy here since we use CIFAR10
         accuracy = metrics.accuracy_score(self.truths, self.predictions)
         

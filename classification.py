@@ -42,6 +42,7 @@ def main(parameters, args):
     # Instantiate wrapper with all its definitions
     wrapper = DefaultWrapper(parameters)
     wrapper.instantiate()
+    
 
     # initialize logger
     if wrapper.is_rank0:
@@ -67,6 +68,7 @@ def main(parameters, args):
     else:
         trainer.train()
         trainer.test()
+        synchronize()
         
     
 if __name__ == '__main__':
@@ -74,9 +76,7 @@ if __name__ == '__main__':
     parameters = edict(load_params(args))
     try:
         launch(main, (parameters, args))
-    except Exception as e:
-        if dist.is_initialized():
-            dist.destroy_process_group()          
+    except Exception as e:       
         raise e
     finally:
         if dist.is_initialized():

@@ -1,4 +1,5 @@
 from .helpfuns import *
+import torch.distributed as dist
 
 def compute_stats(dataloader):
     from tqdm import tqdm
@@ -60,3 +61,58 @@ def compute_stats(dataloader):
     channel_std = np.sqrt(x2_tot/len(dataloader) - channel_avr**2)
     return channel_avr,channel_std
 
+def dist_average_tensor(tensor, mode='all', dst_rank=0):
+    if not dist.is_available():
+        return tensor
+    if not dist.is_initialized():
+        return tensor   
+    world_size = float(dist.get_world_size())    
+    if world_size < 2:
+        return tensor     
+    rt = tensor.clone()
+    if mode == 'all':
+        dist.all_reduce(rt, op=dist.ReduceOp.SUM)
+    else:
+        dist.reduce(rt, dst=dst_rank, op=dist.ReduceOp.SUM)  
+    rt /= world_size
+    return rt
+
+def dist_gather_tensor(tensor, mode='all', dst_rank=0, concatenate=True, cat_dim=0):
+    if not dist.is_available():
+        return tensor
+    if not dist.is_initialized():
+        return tensor 
+    world_size = dist.get_world_size()
+    if world_size < 2:
+        return tensor     
+    rt = tensor.clone()
+    tensor_list = [torch.zeros_like(rt) for _ in range(world_size)]
+    if mode == 'all':
+        dist.all_gather(tensor_list, rt)
+    else:
+        if dist.get_backend() == 'nccl':
+            raise RuntimeError("NCCL does not support gather. Please use all_gather mode=\"all\"")
+        if dist.get_rank() == dst_rank:
+            dist.gather(rt, tensor_list, dst=dst_rank)  
+        else:
+            dist.gather(rt, [], dst=dst_rank)  
+    if concatenate:
+        tensor_list = torch.cat(tensor_list, dim=cat_dim)
+    
+    return tensor_list
+
+def dist_average_model_weights(model, mode='all'):
+    if not dist.is_available():
+        return
+    if not dist.is_initialized():
+        return 
+    world_size = float(dist.get_world_size())
+    if world_size < 2:
+        return     
+    for param in model.parameters():
+        if mode == 'all':
+            dist.all_reduce(param.data, op=dist.ReduceOp.SUM)
+        else:
+            dist.reduce(param.data, dst=dst_rank, op=dist.ReduceOp.SUM)
+        param.data /= world_size
+        

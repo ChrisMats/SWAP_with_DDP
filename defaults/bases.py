@@ -310,12 +310,8 @@ class BaseTrainer:
         
         # couldn't make it work with the best_model so I hacked it
         synchronize()
-        for param in self.model.parameters():
-            break
-        device_id = param.device.index
-        state = {'device': device_id,
-            'iters': self.iters, 'state_dict': self.model.state_dict(),
-                    'optimizer': opimizer_to_CPU_state(self.optimizer), 'epoch': self.epoch,
+        state = {'iters': self.iters, 'state_dict': self.best_model,
+                 'optimizer': opimizer_to_CPU_state(self.optimizer), 'epoch': self.epoch,
                 'parameters' : self.parameters}
         torch.save(state, self.model_path)
         synchronize()

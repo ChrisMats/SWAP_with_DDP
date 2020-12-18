@@ -1,11 +1,16 @@
 import wandb
 from .bases import *
-import torch.distributed as dist
+from .wrappers import DefaultWrapper, dist
+
+def has_passed():
+    print("\n\n\n Rank {} passed".format(torch.cuda.current_device()))
         
 class Trainer(BaseTrainer):
     def __init__(self, wraped_defs):
         super().__init__()
         self.is_grid_search = False
+        self.is_second_phase = False
+
         self.parameters = wraped_defs.parameters
         self.training_params = self.parameters.training_params
         self.attr_from_dict(self.training_params)
@@ -25,10 +30,7 @@ class Trainer(BaseTrainer):
         self.total_step = len(self.trainloader)        
         self.report_intermediate_steps = True     
         self.best_model = deepcopy(self.org_model_state)
-
-
-        # json this shit
-        self.second_phase_start_epoch = 3
+        
         
     def train(self):
         self.test_mode = False
@@ -46,18 +48,14 @@ class Trainer(BaseTrainer):
             epoch_bar = tqdm(epoch_bar, desc='Epoch', leave=False)
             
         for self.epoch in epoch_bar:
-            self.model.train() 
+            
+            # checking if training should change phases and reinits optimizers etc
+            self.switch_to_second_phase()
+            
+            self.model.train()             
             iter_bar = enumerate(self.trainloader)
             if self.is_rank0:
                 iter_bar = tqdm(iter_bar, desc='Training', leave=False, total=len(self.trainloader))
-            
-            if self.epoch == self.second_phase_start_epoch:
-                print("Switching to the 2nd phase of training...")
-                self.trainloader = self.nonddp_trainloader
-                import copy
-                self.model = copy.deepcopy(self.model.module)
-                # I can't figure out how to re-init the optimizer using the wrapper thing
-                self.optimizer = torch.optim.Adam(self.model.parameters(), lr=2e-3, weight_decay=1e-4)
 
             for it, batch in iter_bar:
                 self.iters += 1
@@ -65,6 +63,7 @@ class Trainer(BaseTrainer):
                 
                 if self.val_every != np.inf:
                     if self.iters % int(self.val_every * self.epoch_steps) == 0: 
+                        synchronize()
                         self.epoch_step()  
                         self.model.train()         
                         
@@ -76,7 +75,38 @@ class Trainer(BaseTrainer):
             print(" ==> Training done")
         if not self.is_grid_search:
             self.evaluate()
-            self.save_session(verbose=True)
+            if self.is_second_phase:
+                if self.is_rank0:         
+                    print("Saving parallel and average models")
+                self.best_model = model_to_CPU_state(self.model)                    
+                self.save_parallel_models(verbose=True)
+                dist_average_model_weights(self.model)
+                self.best_model = model_to_CPU_state(self.model)
+                self.save_session(verbose=True)  
+            else:
+                self.save_session(verbose=True)
+        synchronize()
+
+            
+    def switch_to_second_phase(self):
+        
+        if self.epoch > self.second_phase_start_epoch:
+            if not is_ddp(self.model) or self.is_second_phase: return
+            synchronize() 
+            self.is_second_phase = True
+            opt_params = self.parameters.optimization_params.second_phase
+            if self.is_rank0:
+                print("\n\n \033[1m \u27AB \u21F6 Switching to the 2nd phase of training... \033[0;0m")
+            
+            # Changing dataloaders
+            self.trainloader = self.nonddp_trainloader
+            self.epoch_steps = len(self.trainloader)
+            # Unwrapping model from DDP
+            # ATTENTION: Do not do this for Pytorch <1.4 since the hooks will still be registered!
+            self.model = self.model.module
+            # Reinit optimizers and schedulers
+            self.attr_from_dict(DefaultWrapper.init_optimizer(self.model, opt_params))
+            self.attr_from_dict(DefaultWrapper.init_scheduler(self.optimizer, opt_params))
         
     def global_step(self, **kwargs):
         self.optimizer.zero_grad()
@@ -87,7 +117,7 @@ class Trainer(BaseTrainer):
         labels = labels.to(self.device_id, non_blocking=True)
         images = images.to(self.device_id, non_blocking=True)        
         outputs = self.model(images)
-        metric.add_preds(outputs, labels)
+        metric.add_preds(outputs, labels, use_ddp=True)
         
         loss = self.criterion(outputs, labels)            
         loss.backward() 
@@ -97,26 +127,27 @@ class Trainer(BaseTrainer):
 
         if self.scheduler_type == 'OneCycleLR':
             self.scheduler.step()        
-    
-        if not self.is_grid_search and self.is_rank0:
+
+        if not self.is_grid_search:
             if self.iters % self.log_every == 0 or self.iters == 1:
 #                 Maybe an dist.all_reduce here to get the avg loss?
-                self.logging({'train_loss': loss.item(),
-                             'learning_rate': self.get_lr()})
-                self.logging(metric.get_value())     
-                metric.reset()
+                loss = dist_average_tensor(loss)
+                if self.is_rank0:
+                    self.logging({'train_loss': loss.item(),
+                                 'learning_rate': self.get_lr()})
+                    self.logging(metric.get_value())     
+                    metric.reset()
                 
     
     def epoch_step(self, **kwargs): 
         self.evaluate()
         
         if not self.is_grid_search:
-            if self.epoch<self.second_phase_start_epoch:
-                # self.save_session()  
-                # just for debugging, keep next line commented out (and unccomment the previous one)
-                self.save_parallel_models(verbose=True, include_epochs=True)  
+            if self.is_second_phase:
+                self.best_model = model_to_CPU_state(self.model)
+                self.save_parallel_models()  
             else:
-                self.save_parallel_models(verbose=True, include_epochs=True)     
+                self.save_session()
 
             if self.scheduler_type == 'ReduceLROnPlateau':
                 if self.scheduler.mode == 'min':
@@ -125,7 +156,8 @@ class Trainer(BaseTrainer):
                     self.scheduler.step(self.val_acc)
                 
     def evaluate(self, dataloader=None, report_cm=False, **kwargs):
-        if not self.is_rank0: return        
+        if not self.is_rank0: return
+        # Note: I am removing DDP from evaluation since it is slightly slower 
         self.model.eval()
         if dataloader == None:
             dataloader=self.valloader
@@ -135,34 +167,34 @@ class Trainer(BaseTrainer):
             self.model.train()
             return
         val_loss = edict()
-        if is_parallel(self.model):
+        if is_ddp(self.model):
             n_classes = self.model.module.n_classes            
         else:
             n_classes = self.model.n_classes
-        metric = self.metric_fn(n_classes, dataloader.dataset.int_to_labels, mode="val")
-        iter_bar = tqdm(dataloader, desc='Validating', leave=False, total=len(dataloader))
-        
+        if self.is_rank0:
+            metric = self.metric_fn(n_classes, dataloader.dataset.int_to_labels, mode="val")
+            iter_bar = tqdm(dataloader, desc='Validating', leave=False, total=len(dataloader))
+        else:
+            iter_bar = dataloader
+            
         val_loss = []
         with torch.no_grad():
-            for images, labels in iter_bar:                
+            for images, labels in iter_bar:     
                 labels = labels.to(self.device_id, non_blocking=True)
                 images = images.to(self.device_id, non_blocking=True)                   
                 
-                if is_parallel(self.model):
+                if is_ddp(self.model):
                     outputs = self.model.module(images) 
                 else:
-                    outputs = self.model(images)                     
+                    outputs = self.model(images)                         
                 loss = self.criterion(outputs, labels)
-#                 Maybe an dist.all_reduce here to get the avg loss?
-#                 Maybe an dist.all_gather here to get all the predictions?
-                        # Maybe later when get_value (?)
                 val_loss.append(loss.item())
                 metric.add_preds(outputs, labels)
         
         self.val_loss = np.array(val_loss).mean()        
         eval_metrics = metric.get_value()
         self.val_acc = eval_metrics.val_accuracy
-        
+
         if not self.is_grid_search:
             if self.report_intermediate_steps:
                 self.logging(eval_metrics)
@@ -193,7 +225,7 @@ class Trainer(BaseTrainer):
 
         test_loss = []
         results = edict()
-        if is_parallel(self.model):
+        if is_ddp(self.model):
             n_classes = self.model.module.n_classes            
         else:
             n_classes = self.model.n_classes        
@@ -205,7 +237,10 @@ class Trainer(BaseTrainer):
                 labels = labels.to(self.device_id, non_blocking=True)
                 images = images.to(self.device_id, non_blocking=True)                   
                 
-                outputs = self.model.module(images)                               
+                if is_ddp(self.model):
+                    outputs = self.model.module(images) 
+                else:
+                    outputs = self.model(images)                  
                 loss = self.criterion(outputs, labels)
                 
                 test_loss.append(loss.item())

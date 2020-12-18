@@ -32,10 +32,15 @@ class DefaultWrapper:
         if self.is_rank0:        
             print("Initialising Optimization methods . . ")                
         # init and get optimizer
-        self.optimizer = self.init_optimizers()  
+        optimizer_defs = self.init_optimizer(self.model, self.optimization_params.default)  
+        self.attr_from_dict(optimizer_defs)
         
         # init and get scheduler
-        self.scheduler = self.init_schedulers()   
+        scheduler_defs = self.init_scheduler(self.optimizer,
+                                              self.optimization_params.default, 
+                                              len(self.dataloaders.trainloader), 
+                                              self.training_params.epochs)  
+        self.attr_from_dict(scheduler_defs)
         
         # init loss functions
         self.criterion = self.init_criteria()  
@@ -60,6 +65,7 @@ class DefaultWrapper:
 
         # define distributed samplers etc
         trainLoader = DataLoader(trainset, **self.dataloader_params['trainloader'],sampler=train_sampler)
+        self.dataloader_params['trainloader']['shuffle'] = True # Making sure that shuffling is ON again!
         nonddp_trainloader = DataLoader(trainset, **self.dataloader_params['trainloader'])
         valLoader = DataLoader(valset, **self.dataloader_params['valloader'])
         testLoader = DataLoader(testset, **self.dataloader_params['testloader'])
@@ -86,37 +92,45 @@ class DefaultWrapper:
             model = DDP(model, device_ids=[self.device_id])
         return model
     
-    def init_optimizers(self):    
+    @staticmethod
+    def init_optimizer(model, optimization_params):    
         # define optimizer
-        self.optimizer_type = self.optimization_params.default.optimizer.type
-        opt = optim.__dict__[self.optimizer_type]
-        opt_params = self.optimization_params.default.optimizer.params
-        return opt(filter(lambda p: p.requires_grad, self.model.parameters()), **opt_params)
+        optimizer_type = optimization_params.optimizer.type
+        opt = optim.__dict__[optimizer_type]
+        opt_params = optimization_params.optimizer.params
+        optimizer = opt(filter(lambda p: p.requires_grad, model.parameters()), **opt_params)
+        return edict({"optimizer":optimizer, "optimizer_type":optimizer_type})
         
-    def init_schedulers(self):          
+    @staticmethod        
+    def init_scheduler(optimizer, optimization_params, steps_per_epoch=None, epochs=None):          
         # define scheduler
-        self.scheduler_type = self.optimization_params.default.scheduler.type
-        if self.scheduler_type not in optim.lr_scheduler.__dict__:
-            self.scheduler_type = None
-            return None
+        scheduler_type = optimization_params.scheduler.type
+        if scheduler_type not in optim.lr_scheduler.__dict__:
+            return edict({"scheduler":None, "scheduler_type":None})
         
-        sch = optim.lr_scheduler.__dict__[self.scheduler_type]
+        sch = optim.lr_scheduler.__dict__[scheduler_type]
         
         if sch.__name__ == 'OneCycleLR':
-            max_lr = self.optimization_params.default.optimizer.params.lr
+            max_lr = optimization_params.optimizer.params.lr
             sch_params = {"max_lr":max_lr, 
-                          "steps_per_epoch":len(self.dataloaders.trainloader), 
-                          "epochs":self.training_params.epochs,
+                          "steps_per_epoch":steps_per_epoch, 
+                          "epochs":epochs,
                           "div_factor": max_lr/1e-8,
                          "final_div_factor": 1e-3}
         else:
-            sch_params = self.optimization_params.default.scheduler.params[self.scheduler_type]
-        return sch(self.optimizer, **sch_params) 
+            sch_params = optimization_params.scheduler.params[scheduler_type]
+        scheduler = sch(optimizer, **sch_params) 
+        return edict({"scheduler":scheduler, "scheduler_type":scheduler_type})
     
     def init_criteria(self):          
         # define criteria
         crit = nn.CrossEntropyLoss()  
         return crit
+    
+    def attr_from_dict(self, param_dict):
+        self.name = self.__class__.__name__
+        for key in param_dict:
+            setattr(self, key, param_dict[key])    
         
     @property
     def parameters(self):
