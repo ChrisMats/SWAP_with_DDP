@@ -1,7 +1,9 @@
 # adopted from detectron2 
 # https://github.com/facebookresearch/detectron2
 
+import os
 import logging
+
 import torch
 import torch.distributed as dist
 import torch.multiprocessing as mp
@@ -43,15 +45,21 @@ def launch(main_func, args=()):
     It will spawn child processes (defined by ``num_gpus_per_machine`) on each machine.
     Assume everything is happening on a single node!
     """
-    
-    params = args[0]
+    params, arguments = args
     
     # define world  
     define_system_params(params["system_params"])
     world_size = torch.cuda.device_count()
     params["system_params"].update({"world_size" : world_size})
-    
-    if world_size > 1:
+
+    is_slurm_job = "SLURM_JOB_ID" in os.environ
+    if is_slurm_job:
+        rank = int(os.environ["SLURM_PROCID"])
+        world_size = int(os.environ["SLURM_NNODES"]) * int(
+            os.environ["SLURM_TASKS_PER_NODE"][0]
+        )
+
+    if world_size > 1 and not is_slurm_job:
         port = _find_free_port()
         dist_url = f"tcp://127.0.0.1:{port}"
 
@@ -61,6 +69,25 @@ def launch(main_func, args=()):
             args=(main_func, world_size, dist_url, args),
             daemon=False,
         )
+    elif world_size > 1 and is_slurm_job:
+        port = 45124 #_find_free_port() TODO: Investigate this, it seems to fail
+        dist_url = f"tcp://{arguments.dist_url}:{port}"
+
+        import time
+        time.sleep(5)
+
+        dist.init_process_group(
+            backend="NCCL",
+            init_method=dist_url,
+            world_size=world_size,
+            rank=rank
+        )
+
+        synchronize()
+
+        torch.cuda.set_device(rank % torch.cuda.device_count())
+
+        main_func(params, arguments)
     else:
         main_func(*args)
 
