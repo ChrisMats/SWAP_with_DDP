@@ -76,8 +76,6 @@ class Trainer(BaseTrainer):
         if not self.is_grid_search:
             self.evaluate()
             if self.is_second_phase:
-                if self.is_rank0:         
-                    print("Saving parallel and average models")
                 self.best_model = model_to_CPU_state(self.model)                    
                 self.save_parallel_models(verbose=True)
                 dist_average_model_weights(self.model)
@@ -86,27 +84,6 @@ class Trainer(BaseTrainer):
             else:
                 self.save_session(verbose=True)
         synchronize()
-
-            
-    def switch_to_second_phase(self):
-        
-        if self.epoch > self.second_phase_start_epoch:
-            if not is_ddp(self.model) or self.is_second_phase: return
-            synchronize() 
-            self.is_second_phase = True
-            opt_params = self.parameters.optimization_params.second_phase
-            if self.is_rank0:
-                print("\n\n \033[1m \u27AB \u21F6 Switching to the 2nd phase of training... \033[0;0m")
-            
-            # Changing dataloaders
-            self.trainloader = self.nonddp_trainloader
-            self.epoch_steps = len(self.trainloader)
-            # Unwrapping model from DDP
-            # ATTENTION: Do not do this for Pytorch <1.4 since the hooks will still be registered!
-            self.model = self.model.module
-            # Reinit optimizers and schedulers
-            self.attr_from_dict(DefaultWrapper.init_optimizer(self.model, opt_params))
-            self.attr_from_dict(DefaultWrapper.init_scheduler(self.optimizer, opt_params))
         
     def global_step(self, **kwargs):
         self.optimizer.zero_grad()
@@ -154,6 +131,36 @@ class Trainer(BaseTrainer):
                     self.scheduler.step(self.val_loss)
                 else:
                     self.scheduler.step(self.val_acc)
+                    
+    def switch_to_second_phase(self):
+        
+        if self.epoch > self.second_phase_start_epoch:
+            if not is_ddp(self.model) or self.is_second_phase: return
+            self.get_saved_model_path()
+            temp_model_path = self.model_path + '_before_averaging'
+            self.save_session(model_path=temp_model_path)
+            synchronize() 
+            self.is_second_phase = True
+            opt_params = self.parameters.optimization_params.second_phase
+            if self.is_rank0:
+                print("\n\n \033[1m \u27AB \u21F6 Switching to the 2nd phase of training... \033[0;0m")
+            
+            # Changing dataloaders
+            self.trainloader = self.nonddp_trainloader
+            self.epoch_steps = len(self.trainloader)
+            # Unwrapping model from DDP
+            # ATTENTION: Do not do this for Pytorch <1.4 since the hooks will still be registered!
+            self.model = self.model.module
+            # Reinit optimizers and schedulers
+            # update lr and n_epochs
+            current_lr = self.get_lr()
+            updated_lr = current_lr * 0.1
+            opt_params.optimizer.params.lr = max(updated_lr, 1e-4)
+            remaining_epochs = self.epochs - self.epoch + 1
+            # update optims            
+            opt_params.scheduler.params.CosineAnnealingLR.T_max = remaining_epochs
+            self.attr_from_dict(DefaultWrapper.init_optimizer(self.model, opt_params))
+            self.attr_from_dict(DefaultWrapper.init_scheduler(self.optimizer, opt_params))                    
                 
     def evaluate(self, dataloader=None, report_cm=False, **kwargs):
         if not self.is_rank0: return

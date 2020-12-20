@@ -36,10 +36,14 @@ class DefaultWrapper:
         self.attr_from_dict(optimizer_defs)
         
         # init and get scheduler
+        if self.training_params.second_phase_start_epoch < self.training_params.epochs:
+            epochs = self.training_params.second_phase_start_epoch
+        else:
+            epochs = self.training_params.epochs
         scheduler_defs = self.init_scheduler(self.optimizer,
                                               self.optimization_params.default, 
                                               len(self.dataloaders.trainloader), 
-                                              self.training_params.epochs)  
+                                              epochs)  
         self.attr_from_dict(scheduler_defs)
         
         # init loss functions
@@ -115,8 +119,9 @@ class DefaultWrapper:
             sch_params = {"max_lr":max_lr, 
                           "steps_per_epoch":steps_per_epoch, 
                           "epochs":epochs,
-                          "div_factor": max_lr/1e-8,
-                         "final_div_factor": 1e-3}
+                          "div_factor": max_lr/1e-8
+                         }
+            sch_params.update(optimization_params.scheduler.params.OneCycleLR)
         else:
             sch_params = optimization_params.scheduler.params[scheduler_type]
         scheduler = sch(optimizer, **sch_params) 

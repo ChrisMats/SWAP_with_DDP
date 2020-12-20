@@ -15,6 +15,7 @@ def get_device_type(verbose=False):
     return device
     
 def define_system_params(params):
+    os.environ["NCCL_LL_THRESHOLD"]="0"    
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
     if params['use_GPU']:
         if not params['use_all_GPUs']:

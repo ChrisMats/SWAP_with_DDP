@@ -61,14 +61,25 @@ def compute_stats(dataloader):
     channel_std = np.sqrt(x2_tot/len(dataloader) - channel_avr**2)
     return channel_avr,channel_std
 
-def dist_average_tensor(tensor, mode='all', dst_rank=0):
+def ddp_is_on():
     if not dist.is_available():
-        return tensor
+        return False
     if not dist.is_initialized():
-        return tensor   
-    world_size = float(dist.get_world_size())    
+        return False
+    world_size = dist.get_world_size()
     if world_size < 2:
-        return tensor     
+        return False
+    return True
+
+def synchronize():
+    if not ddp_is_on():
+        return
+    dist.barrier() 
+
+def dist_average_tensor(tensor, mode='all', dst_rank=0):
+    if not ddp_is_on():
+        return tensor
+    world_size = float(dist.get_world_size())    
     rt = tensor.clone()
     if mode == 'all':
         dist.all_reduce(rt, op=dist.ReduceOp.SUM)
@@ -78,13 +89,9 @@ def dist_average_tensor(tensor, mode='all', dst_rank=0):
     return rt
 
 def dist_gather_tensor(tensor, mode='all', dst_rank=0, concatenate=True, cat_dim=0):
-    if not dist.is_available():
+    if not ddp_is_on():
         return tensor
-    if not dist.is_initialized():
-        return tensor 
-    world_size = dist.get_world_size()
-    if world_size < 2:
-        return tensor     
+    world_size = dist.get_world_size()  
     rt = tensor.clone()
     tensor_list = [torch.zeros_like(rt) for _ in range(world_size)]
     if mode == 'all':
@@ -102,13 +109,9 @@ def dist_gather_tensor(tensor, mode='all', dst_rank=0, concatenate=True, cat_dim
     return tensor_list
 
 def dist_average_model_weights(model, mode='all'):
-    if not dist.is_available():
-        return
-    if not dist.is_initialized():
-        return 
+    if not ddp_is_on():
+        return tensor
     world_size = float(dist.get_world_size())
-    if world_size < 2:
-        return     
     for param in model.parameters():
         if mode == 'all':
             dist.all_reduce(param.data, op=dist.ReduceOp.SUM)

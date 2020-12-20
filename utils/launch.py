@@ -8,6 +8,7 @@ import torch
 import torch.distributed as dist
 import torch.multiprocessing as mp
 
+from ._utils import synchronize
 from .helpfuns import load_params
 from .system_def import define_system_params
 
@@ -24,19 +25,6 @@ def _find_free_port():
     # NOTE: there is still a chance the port could be taken by other processes.
     return port
 
-def synchronize():
-    """
-    Helper function to synchronize (barrier) among all processes when
-    using distributed training
-    """
-    if not dist.is_available():
-        return
-    if not dist.is_initialized():
-        return
-    world_size = dist.get_world_size()
-    if world_size == 1:
-        return
-    dist.barrier()    
 
 def launch(main_func, args=()):
     """

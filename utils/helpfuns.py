@@ -60,10 +60,18 @@ def load_pickle(fname):
         data = pickle.load(rfile)
     return data      
 
+def get_saved_model_path(checkpoint_name):
+    path = os.path.join(os.getcwd(), 'checkpoints')
+    if not os.path.exists(path):
+        raise IOError("Checkpoint path {} does not exist".format(path))
+    else:
+        return os.path.join(path, checkpoint_name) 
+    
 def load_params(args):
     if args.checkpoint:
         checkpoint_path = get_saved_model_path(args.checkpoint)
         checkpoint = torch.load(checkpoint_path)
+        checkpoint['parameters']['training_params']['model_name'] = args.checkpoint
         return checkpoint['parameters']    
     elif args.params_path:
         return load_json(args.params_path)

@@ -157,10 +157,12 @@
                                                     "factor" : 0.1,
                                                     "patience" : 2, 
                                                     "verbose" : true},
-                                "OneCycleLR" : {"anneal_strategy" : "linear"},
+                                "OneCycleLR" : {"anneal_strategy" : "linear",
+                                               "final_div_factor": 1e-4},
                                 "MultiStepLR" : {"milestones": [7], 
                                                  "gamma" : 0.1},
-                                "CosineAnnealingLR" : {"T_max": 200}                 
+                                "CosineAnnealingLR" : {"T_max": 200, 
+                                                       "eta_min":1e-6}                 
                                }
     
                             }
@@ -176,10 +178,12 @@
                                                     "factor" : 0.1,
                                                     "patience" : 2, 
                                                     "verbose" : true},
-                                "OneCycleLR" : {"anneal_strategy" : "linear"},
+                                "OneCycleLR" : {"anneal_strategy" : "linear",
+                                               "final_div_factor": 1e-4},
                                 "MultiStepLR" : {"milestones": [7], 
                                                  "gamma" : 0.1},
-                                "CosineAnnealingLR" : {"T_max": 10}                 
+                                "CosineAnnealingLR" : {"T_max": 30, 
+                                                       "eta_min":1e-6}                 
                                }
     
                             }
@@ -187,19 +191,19 @@
             },
 
         
-"training_params" : {"model_name" : "testmodel-DLA",
+"training_params" : {"model_name" : "swav_DLA_512perGPU",
                    "grad_clipping" : 1.0,
                    "restore_session" : false,
                     "restore_only_model": false,
-                   "epochs" : 2,
-                    "second_phase_start_epoch" : 1,
+                   "epochs" : 150,
+                    "second_phase_start_epoch" : 120,
                    "val_every" : 1,
                    "save_every" : 1,
                    "save_best_model": false,
-                   "log_every" : 100
+                   "log_every" : 10
                   },
     
-"system_params" : {"use_all_GPUs" : false,
+"system_params" : {"use_all_GPUs" : true,
                    "which_GPUs": "0,1",
                    "use_GPU" : true
                   },

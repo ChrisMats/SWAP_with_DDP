@@ -10,9 +10,7 @@ import argparse
 import torch
 from defaults import *
 from utils.system_def import *
-from utils.launch import launch
-import torch.distributed as dist
-
+from utils.launch import dist, launch, synchronize
 
 global debug
 
@@ -70,7 +68,6 @@ def main(parameters, args):
     else:
         trainer.train()
         trainer.test()
-        synchronize()
         
     
 if __name__ == '__main__':
@@ -79,8 +76,11 @@ if __name__ == '__main__':
     try:
         launch(main, (parameters, args))
     except Exception as e:       
+        if dist.is_initialized():
+            dist.destroy_process_group()            
         raise e
     finally:
         if dist.is_initialized():
+            synchronize()         
             dist.destroy_process_group()            
     

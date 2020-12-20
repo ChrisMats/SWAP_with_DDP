@@ -291,7 +291,7 @@ class BaseTrainer:
         if self.is_rank0:
             self.get_saved_model_path(model_path=model_path)
             if verbose:
-                print("Saving model as {}".format(self.model_name) )
+                print("Saving model as {}".format(os.path.basename(self.model_path)) )
             state = {'iters': self.iters, 'state_dict': self.best_model,
                      'optimizer': opimizer_to_CPU_state(self.optimizer), 'epoch': self.epoch,
                     'parameters' : self.parameters}
@@ -306,7 +306,7 @@ class BaseTrainer:
         rank = self.device_id
         self.model_path = self.model_path + '_rank{}'.format(rank)
         if verbose:
-            print("Saving model as {}".format(self.model_name) )
+            print("Saving model as {}".format(os.path.basename(self.model_path)))
         
         # couldn't make it work with the best_model so I hacked it
         synchronize()

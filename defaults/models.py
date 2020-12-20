@@ -18,7 +18,8 @@ class Classifier(BaseModel):
             self.backbone = DLA()
             fc_in_channels = self.backbone.linear.in_features
             self.backbone.linear = Identity()
-        
+        elif self.backbone_type == 'FastResnet':
+            self.backbone =  FastResnet()
         else:
             self.backbone = models.__dict__[self.backbone_type](pretrained=self.pretrained)
             fc_in_channels = self.backbone.fc.in_features
@@ -35,6 +36,7 @@ class Classifier(BaseModel):
         x = self.fc(x)
         
         return x
+    
     
     
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
