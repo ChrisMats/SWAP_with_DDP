@@ -28,6 +28,7 @@ Repo for the ScaDaMaLe project
     - [x] saver handling        
 - [ ] Fix readme 
 - [ ] Clean up code 
+    - [ ] Comments, rebasing etc
 
 
 ## Stochastic Weight Averaging in Parallel (SWAP) in PyTorch
