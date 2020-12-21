@@ -58,8 +58,7 @@ def launch(main_func, args=()):
             daemon=False,
         )
     elif world_size > 1 and is_slurm_job:
-        port = 45124 #_find_free_port() TODO: Investigate this, it seems to fail
-        dist_url = f"tcp://{arguments.dist_url}:{port}"
+        dist_url = f"tcp://{arguments.dist_url}:{arguments.port}"
 
         dist.init_process_group(
             backend="NCCL",

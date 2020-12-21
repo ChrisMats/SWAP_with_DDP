@@ -28,6 +28,8 @@ def parse_arguments():
     parser.add_argument('--data_location', type=str, required=False, help= 'Update the datapath')
     parser.add_argument('--dist_url', type=str, default='', required=False,
                         help= 'URL of master node, for use with SLURM')
+    parser.add_argument('--port', type=int, required=False, default=45124, 
+                        help= 'Explicit port selection, for use with SLURM')    
     return parser.parse_args()
 
 
