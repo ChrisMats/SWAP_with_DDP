@@ -51,6 +51,13 @@ Repo for the ScaDaMaLe project
 ### Install using docker (rootless)
 - [ ] Add dockerfile
 
+## Distributed training using SLURM
+
+- Define necessary resources on each node in ```cluster_run.sbatch```
+- Train on multiple nodes on SLURM cluster using comand ```sbatch cluster_run.sbatch```
+- (N-number of nodes)x(P-processes per node) are initiated each running ```main.py```
+- All comunications between processes are handled over TCP and a master process adress is set using ```--dist_url```
+
 
 
 ### Results
