@@ -6,22 +6,9 @@ def has_passed():
     print("\n\n\n Rank {} passed".format(torch.cuda.current_device()))
         
 class Trainer(BaseTrainer):
-    """Main trainer class.
-
-    Initializes with a DefaultWrapper instance as its input. 
-    Call trainer.train() to train and validate or call trainer.test()
-    Training has multiple phases. In phase one it is the standard DDP, i.e. a model is trained
-    on multiple machines/gpus using distributed gradients. In the 2nd phase, each gpu trains a
-    single model individually. In the last phase, the unique models are averaged out.
-
-    For details, check https://openreview.net/pdf?id=rygFWAEFwS
+    """This is duplicate of Trainer in defaults. What up? @christos
     """
     def __init__(self, wraped_defs):
-        """Initialize the trainer instance.
-        
-        This function clones its attributes from the DefaultWrapper instance or generates
-        them from the .json file. 
-        """
         super().__init__()
         self.is_grid_search = False
         self.is_second_phase = False
@@ -44,10 +31,10 @@ class Trainer(BaseTrainer):
         self.org_optimizer_state = opimizer_to_CPU_state(self.optimizer)
         self.total_step = len(self.trainloader)        
         self.report_intermediate_steps = True     
-        self.best_model = deepcopy(self.org_model_state)        
+        self.best_model = deepcopy(self.org_model_state)
+        
         
     def train(self):
-        """Main training loop."""
         self.test_mode = False
         if not self.is_grid_search:
             self.load_session(self.restore_only_model)
@@ -62,14 +49,16 @@ class Trainer(BaseTrainer):
         if self.is_rank0:
             epoch_bar = tqdm(epoch_bar, desc='Epoch', leave=False)
             
-        for self.epoch in epoch_bar:            
-            # checking if training should change phases and reinits optimizers etc.
+        for self.epoch in epoch_bar:
+            
+            # checking if training should change phases and reinits optimizers etc
             self.switch_to_second_phase()
             
             self.model.train()             
             iter_bar = enumerate(self.trainloader)
             if self.is_rank0:
                 iter_bar = tqdm(iter_bar, desc='Training', leave=False, total=len(self.trainloader))
+
             for it, batch in iter_bar:
                 self.iters += 1
                 self.global_step(batch=batch, metric=metric, it=it)   
@@ -78,8 +67,10 @@ class Trainer(BaseTrainer):
                     if self.iters % int(self.val_every * self.epoch_steps) == 0: 
                         synchronize()
                         self.epoch_step()  
-                        self.model.train()
-                synchronize()
+                        self.model.train()         
+                        
+                synchronize()               
+                        
             if self.scheduler_type in ['MultiStepLR', 'CosineAnnealingLR']:
                 self.scheduler.step()                        
         if self.is_rank0:         
@@ -97,10 +88,6 @@ class Trainer(BaseTrainer):
         synchronize()
         
     def global_step(self, **kwargs):
-        """Function for the standard forward/backward/update.
-        
-        If using DDP, metrics (e.g. accuracy) are calculated with dist.all_gather
-        """
         self.optimizer.zero_grad()
         
         metric = kwargs['metric']        
@@ -109,7 +96,7 @@ class Trainer(BaseTrainer):
         labels = labels.to(self.device_id, non_blocking=True)
         images = images.to(self.device_id, non_blocking=True)        
         outputs = self.model(images)
-        metric.add_preds(outputs, labels, use_ddp=True) # distributed gather inside
+        metric.add_preds(outputs, labels, use_ddp=True)
         
         loss = self.criterion(outputs, labels)            
         loss.backward() 
@@ -128,15 +115,12 @@ class Trainer(BaseTrainer):
                     self.logging({'train_loss': loss.item(),
                                  'learning_rate': self.get_lr()})
                     self.logging(metric.get_value())     
-                    metric.reset()                
+                    metric.reset()
+                
     
     def epoch_step(self, **kwargs): 
-        """Function for periodic validation, LR updates and model saving.
+        self.evaluate()
         
-        Note that in the 2nd phase of training, the behavior is different, each model on
-        each GPU is saved separately.
-        """
-        self.evaluate()        
         if not self.is_grid_search:
             if self.is_second_phase:
                 self.best_model = model_to_CPU_state(self.model)
@@ -151,7 +135,7 @@ class Trainer(BaseTrainer):
                     self.scheduler.step(self.val_acc)
                     
     def switch_to_second_phase(self):
-        """Function for switching to 2nd phase of SWAP training."""     
+        
         if self.epoch > self.second_phase_start_epoch:
             if not is_ddp(self.model) or self.is_second_phase: return
             self.get_saved_model_path()
@@ -161,7 +145,8 @@ class Trainer(BaseTrainer):
             self.is_second_phase = True
             opt_params = self.parameters.optimization_params.second_phase
             if self.is_rank0:
-                print("\n\n \033[1m \u27AB \u21F6 Switching to the 2nd phase of training... \033[0;0m")            
+                print("\n\n \033[1m \u27AB \u21F6 Switching to the 2nd phase of training... \033[0;0m")
+            
             # Changing dataloaders
             self.trainloader = self.nonddp_trainloader
             self.epoch_steps = len(self.trainloader)
@@ -180,12 +165,6 @@ class Trainer(BaseTrainer):
             self.attr_from_dict(DefaultWrapper.init_scheduler(self.optimizer, opt_params))                    
                 
     def evaluate(self, dataloader=None, report_cm=False, **kwargs):
-        """Validation loop function.
-        
-        This is pretty much the same thing with global_step() but with torch.no_grad()
-        Also note that DDP is not used here. There is not much point to DDP, since 
-        we are not doing backprop anyway.
-        """
         if not self.is_rank0: return
         # Note: I am removing DDP from evaluation since it is slightly slower 
         self.model.eval()
@@ -240,11 +219,6 @@ class Trainer(BaseTrainer):
         self.model.train()
     
     def test(self, dataloader=None, **kwargs):
-        """Test function.
-        
-        Just be careful you are not explicitly passing the wrong dataset here.
-        Otherwise it will use the test set.
-        """
         if not self.is_rank0: return
         self.test_mode = True
         self.restore_session = True
@@ -295,10 +269,6 @@ class Trainer(BaseTrainer):
         
     def lr_grid_search(self, min_pow=-5, max_pow=-1, resolution=20, n_epochs=5, 
                        random_lr=False, report_intermediate_steps=False, keep_schedule=False):
-        """Hyperparameter search function.
-        
-        Since we are using well-known datasets this is not necessary, but here for completeness.
-        """
         res_dir = "grid_search_results"
         res_dir = os.path.join(os.getcwd(), res_dir)        
         self.is_grid_search = True

@@ -15,6 +15,7 @@ def compute_stats(dataloader):
     return channel_avr,channel_std
         
 def model_to_CPU_state(net):
+    """Gets the state_dict to CPU for easier save/load later."""
     if is_parallel(net):
         state_dict = {k: deepcopy(v.cpu()) for k, v in net.module.state_dict().items()}
     else:
@@ -22,6 +23,7 @@ def model_to_CPU_state(net):
     return OrderedDict(state_dict)
 
 def opimizer_to_CPU_state(opt):
+    """Gets the state_dict to CPU for easier save/load later."""
     state_dict = {}
     state_dict['state'] = {}
     state_dict['param_groups'] = deepcopy(opt.state_dict()['param_groups'])
@@ -98,7 +100,8 @@ def dist_gather_tensor(tensor, mode='all', dst_rank=0, concatenate=True, cat_dim
         dist.all_gather(tensor_list, rt)
     else:
         if dist.get_backend() == 'nccl':
-            raise RuntimeError("NCCL does not support gather. Please use all_gather mode=\"all\"")
+            # this is news to me :)
+            raise RuntimeError("NCCL does not support gather. Please use all_gather mode=\"all\"") 
         if dist.get_rank() == dst_rank:
             dist.gather(rt, tensor_list, dst=dst_rank)  
         else:

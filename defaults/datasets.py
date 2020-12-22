@@ -3,14 +3,17 @@ from torchvision.datasets import CIFAR10
 
 
 class Cifar10(BaseSet, CIFAR10):
+    """Dataset class loading CIFAR10.
     
+    Uses the transforms read from the .json and applies to CIFAR10.
+    """   
+
+    # are these lines a forgotten debugging session @christos?
     n_classes = 10    
     img_channels = 3
     mean = (0.4914, 0.4822, 0.4465)
-    std = (0.2023, 0.1994, 0.2010)
-    
-    def __init__(self, dataset_params, mode='train'):
-        
+    std = (0.2023, 0.1994, 0.2010)    
+    def __init__(self, dataset_params, mode='train'):        
         self.mode = mode
         self.attr_from_dict(dataset_params) 
         self.name = self.__class__.__name__

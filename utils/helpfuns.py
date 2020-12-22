@@ -16,7 +16,7 @@ from copy import deepcopy
 from pprint import pprint
 import matplotlib.pylab as plt
 from collections import OrderedDict
-from easydict import EasyDict as edict
+from easydict import EasyDict as EasyDict
 
 
 def check_dir(path):

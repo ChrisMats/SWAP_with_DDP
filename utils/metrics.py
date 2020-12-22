@@ -1,11 +1,14 @@
 import torch
 import numpy as np
 from sklearn import metrics
-from easydict import EasyDict as edict
+from easydict import EasyDict as EasyDict
 from ._utils import *
 
 class DefaultClassificationMetrics:
-    
+    """Performance metrics class.
+
+    It is just the basic accuracy metric since the data is simple.
+    """
     def __init__(self, n_classes, int_to_labels=None, act_threshold=0.5, mode=""):
         self.mode = mode
         self.n_classes = n_classes
@@ -23,8 +26,7 @@ class DefaultClassificationMetrics:
     def reset(self):
         self.confusion_matrix = np.zeros((self.n_classes, self.n_classes))
         self.truths = []
-        self.predictions = []        
-        
+        self.predictions = []
     
     # add predictions to confusion matrix etc
     def add_preds(self, y_pred, y_true, use_ddp=False):
@@ -36,16 +38,13 @@ class DefaultClassificationMetrics:
         y_pred = y_pred.flatten().detach().cpu().numpy()
         self.truths += (y_true.tolist())
         self.predictions += (y_pred.tolist())
-        np.add.at(self.confusion_matrix, (y_true, y_pred), 1)
-    
+        np.add.at(self.confusion_matrix, (y_true, y_pred), 1)    
     
     # Calculate and report metrics
-    def get_value(self, use_ddp=False, device_id=0):
-        
+    def get_value(self, use_ddp=False, device_id=0):        
         # I only added accuracy here since we use CIFAR10
-        accuracy = metrics.accuracy_score(self.truths, self.predictions)
-        
+        accuracy = metrics.accuracy_score(self.truths, self.predictions)        
         # return metrics as dictionary
-        return edict({
+        return EasyDict({
             self.prefix + "accuracy" : round(accuracy, 3),
                      })
