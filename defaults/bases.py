@@ -271,7 +271,7 @@ class BaseTrainer:
             for state in self.optimizer.state.values():
                 for k, v in state.items():
                     if isinstance(v, torch.Tensor):
-                        state[k] = v.to(self.device)
+                        state[k] = v.to(self.device_id)
             self.org_optimizer_state = opimizer_to_CPU_state(self.optimizer)
             print("=> loaded checkpoint '{}' (epoch {})"
                       .format(self.model_path, checkpoint['epoch']))
