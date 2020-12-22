@@ -28,8 +28,12 @@ Repo for the ScaDaMaLe project
     - [x] dataloader handling    
     - [x] saver handling        
 - [ ] Fix readme 
+    - [x] Add "how-to" with SLURM
+    - [ ] Add "how-to" without SLURM, i.e. on a single machine
+    - [ ] Describe the code, which file has what function etc (but do we need this now? we have comments everywhere)
+    - [ ] Once everything is done, reformat the README
 - [ ] Clean up code 
-    - [ ] Comments, rebasing etc
+    - [x] Comments, rebasing etc
 
 
 ## Stochastic Weight Averaging in Parallel (SWAP) in PyTorch
