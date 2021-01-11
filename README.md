@@ -55,6 +55,7 @@ Repo for the ScaDaMaLe project
 - All input options need to be modified in the _params.json_ file.\
 ``` cd your_path/SWAP_with_DDP```\
 ```python classification.py --params_path params.json```
+- About the params, if you increase the num_worksers and notice it is slow, you should set it back to 0 or 1. This is a problem that occurs with pytorch DDP.
 
 ## Docker setup
 - Note that the Dockerfile is provided for single machine, multiGPU usage. For multi-machine setups, refer to the SLURM section.
