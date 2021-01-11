@@ -34,7 +34,6 @@ def parse_arguments():
 
 
 def main(parameters, args):
-
     if args.data_location:
         parameters['dataset_params']['data_location'] = args.data_location
         
@@ -74,7 +73,7 @@ def main(parameters, args):
     
 if __name__ == '__main__':
     args = parse_arguments()
-    parameters = edict(load_params(args))
+    parameters = EasyDict(load_params(args))
     try:
         launch(main, (parameters, args))
     except Exception as e:       

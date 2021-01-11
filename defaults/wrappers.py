@@ -7,15 +7,29 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.data.distributed import DistributedSampler as DS
 
 class DefaultWrapper:
-    def __init__(self, parameters):
+    """Class that wraps everything.
+
+    Model, optimizers, schedulers, and dataloaders are initialized in this class.
+
+    Attributes:
+        param_attributes:
+            All the fields in the .json file are stored as attributes here.
+    """
+    def __init__(self, parameters: EasyDict):
+        """Inits the DefaultWrapper class.
+        
+        Args:
+            parameters:
+                Dictionary of paramaters read from a .json file.
+        """
         super().__init__()
-        parameters = edict(deepcopy(parameters))
+        parameters = EasyDict(deepcopy(parameters))
         self.param_attributes = list(parameters.keys())
         for key in parameters:
             setattr(self, key, parameters[key])        
         
     def instantiate(self):        
-        # init and get dataloaders
+        """Initialize model, loss, metrics, dataloaders, optimizer and scheduler."""
         if self.is_rank0:
             print("Initialising Dataloaders . . .")
         self.dataloaders = self.init_dataloaders()
@@ -53,8 +67,22 @@ class DefaultWrapper:
         self.metric = DefaultClassificationMetrics
         
     
-    def init_dataloaders(self, collate_fn=None):
-        # define dataset params and dataloaders  
+    def init_dataloaders(self, collate_fn=None) -> EasyDict:
+        """Define dataset params and dataloaders.
+        
+        Args:
+            collate_fn:
+                Specific collate_fn for the torch.utils.data.DataLoader.
+        
+        Returns:
+            A dict (EasyDict) with train, validation and test loaders. nonddp_trainloader is
+            for the 2nd phase of SWAP training where we don't use the distributed sampler.
+            
+            {'trainloader': trainloader,
+             'valloader': valloader,
+             'testloader': testloader,
+             'nonddp_trainloader':nonddp_trainloader}
+        """ 
         trainset = Cifar10(self.dataset_params, mode='train')
         valset = Cifar10(self.dataset_params, mode='eval')
         testset = Cifar10(self.dataset_params, mode='test')
@@ -78,18 +106,20 @@ class DefaultWrapper:
             warnings.warn("Warning... Using test set as validation set")
             valLoader = testLoader
 
-        return edict({'trainloader': trainLoader, 
-                       'valloader' : valLoader,
-                       'testloader' : testLoader,
-                       'nonddp_trainloader': nonddp_trainloader,
-                       })
+        return EasyDict({'trainloader': trainLoader,
+                         'valloader' : valLoader,
+                         'testloader' : testLoader,
+                         'nonddp_trainloader': nonddp_trainloader,
+                         })
         
 
-    def init_model(self):      
-    # DDP broadcasts model states from rank 0 process to all other processes 
-    # in the DDP constructor, you don’t need to worry about different DDP processes 
-    # start from different model parameter initial values.
-  
+    def init_model(self) -> Classifier:
+        """Initialize the model.
+        
+        DDP broadcasts model states from rank 0 process to all other processes 
+        in the DDP constructor, you don’t need to worry about different DDP processes 
+        start from different model parameter initial values.   
+        """
         model =  Classifier(self.model_params)
         model.to(self.device_id)
         if self.visible_world > 1 and torch.distributed.is_initialized():
@@ -97,20 +127,40 @@ class DefaultWrapper:
         return model
     
     @staticmethod
-    def init_optimizer(model, optimization_params):    
-        # define optimizer
+    def init_optimizer(model, optimization_params:EasyDict) -> EasyDict:    
+        """Initialize the optimizer.
+        
+        Args:
+            optimization_params: EasyDict instance, read from the .json file.
+
+        Returns:
+            A dict (EasyDict) with optimizer and type keys.
+            {'optimizer': optimizer (e.g. a torch.optim.Adam instance),
+             'optimizer_type': optimizer_type (e.g. a string "Adam")}
+        """
         optimizer_type = optimization_params.optimizer.type
         opt = optim.__dict__[optimizer_type]
         opt_params = optimization_params.optimizer.params
         optimizer = opt(filter(lambda p: p.requires_grad, model.parameters()), **opt_params)
-        return edict({"optimizer":optimizer, "optimizer_type":optimizer_type})
+        return EasyDict({"optimizer":optimizer, "optimizer_type":optimizer_type})
         
     @staticmethod        
-    def init_scheduler(optimizer, optimization_params, steps_per_epoch=None, epochs=None):          
-        # define scheduler
+    def init_scheduler(optimizer, optimization_params: EasyDict, steps_per_epoch: int=None, epochs: int=None) -> EasyDict:          
+        """Initialize the learning rate scheduler.
+
+        steps_per_epoch and epochs are set by the caller, they are not intended to be None.
+        
+        Args:
+            optimization_params: EasyDict instance, read from the .json file.
+        
+        Returns:
+            A dict (EasyDict) with scheduler and type keys.
+            {'scheduler': scheduler (e.g. a torch.optim.lr_scheduler.OneCycleLR instance),
+             'scheduler_type': scheduler_type (e.g. a string "OneCycleLR")}
+        """
         scheduler_type = optimization_params.scheduler.type
         if scheduler_type not in optim.lr_scheduler.__dict__:
-            return edict({"scheduler":None, "scheduler_type":None})
+            return EasyDict({"scheduler":None, "scheduler_type":None})
         
         sch = optim.lr_scheduler.__dict__[scheduler_type]
         
@@ -125,21 +175,31 @@ class DefaultWrapper:
         else:
             sch_params = optimization_params.scheduler.params[scheduler_type]
         scheduler = sch(optimizer, **sch_params) 
-        return edict({"scheduler":scheduler, "scheduler_type":scheduler_type})
+        return EasyDict({"scheduler":scheduler, "scheduler_type":scheduler_type})
     
     def init_criteria(self):          
-        # define criteria
+        """Initialize the loss criteria.
+        
+        This is just an nn.CrossEntropy instance.
+        """
         crit = nn.CrossEntropyLoss()  
         return crit
     
-    def attr_from_dict(self, param_dict):
+    def attr_from_dict(self, param_dict: EasyDict):
+        """Function that makes the dictionary key-values into attributes.
+        
+        This allows us to use the dot syntax. Check the .json file for the entries.
+
+        Args:
+            param_dict: The dict we populate the class attributes from.
+        """
         self.name = self.__class__.__name__
         for key in param_dict:
             setattr(self, key, param_dict[key])    
         
     @property
     def parameters(self):
-        return edict({key : getattr(self, key) 
+        return EasyDict({key : getattr(self, key) 
                       for key in self.param_attributes})
     
     @property

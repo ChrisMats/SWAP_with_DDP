@@ -2,6 +2,7 @@ from .bases import *
 
 
 class Identity(nn.Module):
+    """An identity function."""
     def __init__(self):
         super(Identity, self).__init__()
         
@@ -10,6 +11,10 @@ class Identity(nn.Module):
     
     
 class Classifier(BaseModel):
+    """A wrapper class that provides different CNN backbones.
+    
+    Is not intended to be used standalone. Called using the DefaultWrapper class.
+    """
     def __init__(self, model_params):
         super().__init__()
         self.attr_from_dict(model_params)
@@ -44,14 +49,15 @@ class Classifier(BaseModel):
 '''DLA in PyTorch.
 FROM: https://github.com/kuangliu/pytorch-cifar/blob/master/models/dla.py
 '''
-# import torch
-# import torch.nn as nn
-# import torch.nn.functional as F
 
 
 class BasicBlock(nn.Module):
+    """Building block for the DLA.
+    
+    Consists of BatchNorm, Relu, Conv2d layers. Residual.
+    Is not intended to be used standalone. Called using the DLA class.
+    """
     expansion = 1
-
     def __init__(self, in_planes, planes, stride=1):
         super(BasicBlock, self).__init__()
         self.conv1 = nn.Conv2d(
@@ -78,6 +84,10 @@ class BasicBlock(nn.Module):
 
 
 class Root(nn.Module):
+    """Building block for the DLA.
+    
+    Is not intended to be used standalone. Called using the DLA class.
+    """
     def __init__(self, in_channels, out_channels, kernel_size=1):
         super(Root, self).__init__()
         self.conv = nn.Conv2d(
@@ -92,6 +102,10 @@ class Root(nn.Module):
 
 
 class Tree(nn.Module):
+    """Building block for the DLA.
+    
+    Is not intended to be used standalone. Called using the DLA class.
+    """
     def __init__(self, block, in_channels, out_channels, level=1, stride=1):
         super(Tree, self).__init__()
         self.level = level
@@ -124,6 +138,11 @@ class Tree(nn.Module):
 
 
 class DLA(nn.Module):
+    """Backbone architecture, from https://arxiv.org/abs/1707.06484.
+    
+    Is not intended to be used standalone. Called using the Classifier class.
+    On a different note, this is pretty fancy, does it actually work better?
+    """
     def __init__(self, block=BasicBlock, num_classes=10):
         super(DLA, self).__init__()
         self.base = nn.Sequential(

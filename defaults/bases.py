@@ -14,7 +14,11 @@ from torch import optim
 from torch.optim.lr_scheduler import ReduceLROnPlateau, MultiStepLR, OneCycleLR
     
 class BaseSet(Dataset):
-    
+    """Base dataset class that actual datasets, e.g. Cifar10, subclasses.
+
+    This class only has torchvision.transforms for augmentation.
+    Not intended to be used directly.
+    """
     def attr_from_dict(self, param_dict):
         self.name = self.__class__.__name__
         for key in param_dict:
@@ -75,9 +79,7 @@ class BaseSet(Dataset):
         
         return transform_list
 
-
-    def get_transforms(self):
-        
+    def get_transforms(self):        
         if self.mode == 'train':
             aplied_transforms = self.train_transforms
         if self.mode in ['val', 'eval']:
@@ -118,7 +120,6 @@ class BaseSet(Dataset):
             train_split = idxs[val_size:]
             val_split = idxs[:val_size]
             save_json(val_split, json_path)    
-
         else:
             val_split = load_json(json_path)
             if val_size != len(val_split):
@@ -131,6 +132,11 @@ class BaseSet(Dataset):
     
     
 class BaseModel(nn.Module):
+    """Base model that Classifier subclasses.
+    
+    This class only has utility functions like freeze/unfreeze and init_weights.
+    Not intended to be used directly.
+    """
     def __init__(self):
         super().__init__()  
         self.base_id = torch.cuda.current_device()
@@ -224,6 +230,11 @@ class BaseModel(nn.Module):
    
                 
 class BaseTrainer:
+    """Base trainer class that Trainer subclasses.
+
+    This class only has utility functions like save/load model.
+    Not intended to be used directly.
+    """
     def __init__(self):
         super().__init__()  
         self.val_loss = float("inf")
@@ -233,8 +244,7 @@ class BaseTrainer:
         self.iters = 0
         self.epoch0 = 0
         self.epoch = 0
-        self.base_id = torch.cuda.current_device()        
-        
+        self.base_id = torch.cuda.current_device()
     
     def attr_from_dict(self, param_dict):
         for key in param_dict:
