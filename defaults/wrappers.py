@@ -83,9 +83,11 @@ class DefaultWrapper:
              'testloader': testloader,
              'nonddp_trainloader':nonddp_trainloader}
         """ 
-        trainset = Cifar10(self.dataset_params, mode='train')
-        valset = Cifar10(self.dataset_params, mode='eval')
-        testset = Cifar10(self.dataset_params, mode='test')
+        DataSet = self.dataset_mapper.get(self.dataset_params.dataset, 0)
+        assert DataSet, "Dataset not found - Plese select one of the following: {}".format(list(self.dataset_mapper.keys()))
+        trainset = DataSet(self.dataset_params, mode='train')
+        valset = DataSet(self.dataset_params, mode='eval')
+        testset = DataSet(self.dataset_params, mode='test')
         
         # distributed sampler 
         if self.visible_world > 1 and dist.is_initialized():        
@@ -201,6 +203,12 @@ class DefaultWrapper:
     def parameters(self):
         return EasyDict({key : getattr(self, key) 
                       for key in self.param_attributes})
+    
+    @property
+    def dataset_mapper(self):
+        return {
+            "CIFAR10" : Cifar10,
+            "IMAGENET" : Imagenet,}
     
     @property
     def visible_world(self):
