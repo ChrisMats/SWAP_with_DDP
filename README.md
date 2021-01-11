@@ -71,7 +71,7 @@ Repo for the ScaDaMaLe project
 - Before starting training, define necessary resources for each node in the ```cluster_run.sbatch``` file.
 - Train on multiple nodes on SLURM cluster using comand \
 ``` cd your_path/SWAP_with_DDP```\
-```sbatch cluster_run.sbatch```
+```sbatch cluster_run.sbatch your_conda_env```
 - (N-number of nodes)x(P-processes per node) are initiated each running ```main.py```
 - All comunications between processes are handled over TCP and a master process adress is set using ```--dist_url```
 
