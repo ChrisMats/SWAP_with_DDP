@@ -18,7 +18,6 @@ Repo for the ScaDaMaLe project
     - [x] work with SLURM
     - [x] work on multiple servers  
     - [x] DDP on log/eval etc     
-    - [x] Fix issue that causes the freezing while exiting the main -- this is a DDP bug (we cannot solve it)
 - [x] [SWAP](https://openreview.net/pdf?id=rygFWAEFwS) :heavy_check_mark:
     - [x] model handling
     - [x] proper averaging
