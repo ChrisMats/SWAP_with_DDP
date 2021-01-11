@@ -68,7 +68,7 @@ Repo for the ScaDaMaLe project
 
 ## Distributed training using SLURM
 
-- Define necessary resources on each node in ```cluster_run.sbatch```
+- Before starting training, define necessary resources for each node in the ```cluster_run.sbatch``` file.
 - Train on multiple nodes on SLURM cluster using comand \
 ``` cd your_path/SWAP_with_DDP```\
 ```sbatch cluster_run.sbatch```
