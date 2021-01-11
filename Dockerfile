@@ -97,7 +97,7 @@ ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 
 
-ENV WANDB_API_KEY 89954588f259677c0423d0c7d4771f827289ff66
+ENV WANDB_API_KEY 
 # RUN wandb login
 
 # git a repo you want to play around with
