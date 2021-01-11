@@ -13,7 +13,6 @@ Repo for the ScaDaMaLe project
     - [x] Logging (vanila)    
     - [x] Evaluation (vanila)        
     - [x] Save / load
-    - [x] Fix issue that cause bottlenecks after each epoch (fixed: n_workers<2)
 
 - [x] Final DDP - multiple servers :heavy_check_mark:
     - [x] work with SLURM
