@@ -52,7 +52,7 @@ Repo for the ScaDaMaLe project
 - [x] Add dockerfile
 
 ## Usage
-- All input options need to be modified in the _params.json_ file, including whether to use SLURM or not.\
+- All input options need to be modified in the _params.json_ file, including whether to use SLURM or not **(or is this true? maybe it is a command line arg?)**.\
 ``` cd your_path/SWAP_with_DDP```\
 ```python classification.py --params_path params.json```
 
