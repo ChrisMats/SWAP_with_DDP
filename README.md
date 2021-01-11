@@ -16,12 +16,10 @@ Repo for the ScaDaMaLe project
     - [x] Fix issue that cause bottlenecks after each epoch (fixed: n_workers<2)
 
 - [ ] Final DDP - multiple servers
-    - [ ] (Optional) BatchNorm (distributed)  
-    - [ ] (Optional) mixed precision   
     - [x] work with SLURM
     - [x] work on multiple servers  
     - [x] DDP on log/eval etc     
-    - [ ] Fix issue that causes the freezing while exiting the main
+    - [x] Fix issue that causes the freezing while exiting the main -- this is a DDP bug (we cannot solve it)
 - [x] [SWAP](https://openreview.net/pdf?id=rygFWAEFwS) :heavy_check_mark:
     - [x] model handling
     - [x] proper averaging
