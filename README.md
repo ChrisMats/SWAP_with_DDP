@@ -4,7 +4,7 @@ Repo for the ScaDaMaLe project
 
 ## TO DO:
 - [x] Basic training for CIFAR10 :heavy_check_mark:
-- [ ] (Optional) Finetune model and hyperparameters
+- [x] (Optional) Finetune model and hyperparameters
 - [x] Vanila DDP - Single server :heavy_check_mark:
     - [x] Basic DDP handlers and launch defs
     - [x] Device_id everywhere 
@@ -15,7 +15,7 @@ Repo for the ScaDaMaLe project
     - [x] Save / load
     - [x] Fix issue that cause bottlenecks after each epoch (fixed: n_workers<2)
 
-- [ ] Final DDP - multiple servers :heavy_check_mark:
+- [x] Final DDP - multiple servers :heavy_check_mark:
     - [x] work with SLURM
     - [x] work on multiple servers  
     - [x] DDP on log/eval etc     
@@ -30,7 +30,7 @@ Repo for the ScaDaMaLe project
     - [ ] Add "how-to" without SLURM, i.e. on a single machine
     - [ ] Describe the code, which file has what function etc (but do we need this now? we have comments everywhere)
     - [ ] Once everything is done, reformat the README
-- [ ] Clean up code :heavy_check_mark:
+- [x] Clean up code :heavy_check_mark:
     - [x] Comments, rebasing etc
 
 
