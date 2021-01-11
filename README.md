@@ -50,6 +50,13 @@ Repo for the ScaDaMaLe project
 
 ### Install using docker (rootless)
 - [x] Add dockerfile
+
+## Usage
+- All input options need to be modified in the _params.json_ file, including whether to use SLURM or not **(or is this true? maybe it is a command line arg?)**.\
+``` cd your_path/SWAP_with_DDP```\
+```python classification.py --params_path params.json```
+
+## Docker setup
 - Note that the Dockerfile is provided for single machine, multiGPU usage. For multi-machine setups, refer to the SLURM section.
 - Dockerfile has its own comments. At the end of the file there are a few lines describing how to build/run the docker image. You can (and should) modify the port numbers depending on your setup. 
 - Recommended folder setup is to have _/storage_ in the host machine and _/storage_ in the docker image. Clone [this repository](https://github.com/ChrisMats/SWAP_with_DDP) to the _/storage_ in the host machine, and work from there. You can change the WORKDIR (Line 107) in the Dockerfile if you desire a different folder setup. 
