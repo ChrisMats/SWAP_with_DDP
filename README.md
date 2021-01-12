@@ -2,6 +2,8 @@
 Repo for the ScaDaMaLe project:\
 [Stochastic Weight Averaging in Parallel (SWAP)](https://openreview.net/pdf?id=rygFWAEFwS) in [PyTorch](https://pytorch.org/)
 
+- [ ] Add a short project description, contributors etc
+
 ## TO DO:
 - [x] Basic training for CIFAR10 :heavy_check_mark:
 - [x] (Optional) Finetune model and hyperparameters
@@ -31,9 +33,6 @@ Repo for the ScaDaMaLe project:\
 - [x] Clean up code :heavy_check_mark:
     - [x] Comments, rebasing etc
 
-
-## Stochastic Weight Averaging in Parallel (SWAP) in PyTorch
-- [ ] Add project description, contributors etc
  
 ## Install dependencies etc.
 
