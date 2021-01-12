@@ -9,7 +9,7 @@ Johan Fredin Haslum @cfredinh
 
 Miquel Marti @miquelmarti
 
-**Please clik on the image below to see our video**
+### Please clik on the image below to see our video
 
 [![Video demonstration](images/swap.png)](https://youtu.be/O3ZxNvEx48Q)
 
