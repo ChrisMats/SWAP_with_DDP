@@ -80,10 +80,9 @@ CIFAR10 - 8 GPUs - 512 per gpu - 150 epochs - Step 2 starts at step 1500 - witho
     - [x] proper averaging
     - [x] dataloader handling    
     - [x] saver handling        
-- [ ] Fix readme 
+- [ ] Fix readme :heavy_check_mark:
     - [x] Add "how-to" with SLURM
     - [x] Add "how-to" without SLURM, i.e. on a single machine
     - [x] Describe the code, which file has what function etc or comment the code
-    - [ ] final README
 - [x] Clean up code :heavy_check_mark:
     - [x] Comments, rebasing etc
