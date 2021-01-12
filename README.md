@@ -1,11 +1,14 @@
 # Repo for the ScaDaMaLe project
 [Stochastic Weight Averaging in Parallel (SWAP)](https://openreview.net/pdf?id=rygFWAEFwS) in [PyTorch](https://pytorch.org/)
 
-Johan Fredin Haslum @cfredinh
-Miquel Marti @miquelmarti
 Christos Matsoukas @ChrisMats
+
 Emir Konuk @emirkonuk
- 
+
+Johan Fredin Haslum @cfredinh
+
+Miquel Marti @miquelmarti
+
 ## Install dependencies etc.
 
 - Python 3.8+ 
