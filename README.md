@@ -3,35 +3,6 @@
 
 - [ ] Add a short project description, contributors etc
 
-## TO DO:
-- [x] Basic training for CIFAR10 :heavy_check_mark:
-- [x] (Optional) Finetune model and hyperparameters
-- [x] Vanila DDP - Single server :heavy_check_mark:
-    - [x] Basic DDP handlers and launch defs
-    - [x] Device_id everywhere 
-    - [x] Dataloaders
-    - [x] Training loop
-    - [x] Logging (vanila)    
-    - [x] Evaluation (vanila)        
-    - [x] Save / load
-
-- [x] Final DDP - multiple servers :heavy_check_mark:
-    - [x] work with SLURM
-    - [x] work on multiple servers  
-    - [x] DDP on log/eval etc     
-- [x] [SWAP](https://openreview.net/pdf?id=rygFWAEFwS) :heavy_check_mark:
-    - [x] model handling
-    - [x] proper averaging
-    - [x] dataloader handling    
-    - [x] saver handling        
-- [ ] Fix readme 
-    - [x] Add "how-to" with SLURM
-    - [x] Add "how-to" without SLURM, i.e. on a single machine
-    - [x] Describe the code, which file has what function etc or comment the code
-    - [ ] final README
-- [x] Clean up code :heavy_check_mark:
-    - [x] Comments, rebasing etc
-
  
 ## Install dependencies etc.
 
@@ -81,3 +52,32 @@ CIFAR10 - 8 GPUs - 512 per gpu - 150 epochs - Step 2 starts at step 1500 - witho
 ![Alt text](images/loss.png?raw=true "Loss evalution")
 ![Alt text](images/acc.png?raw=true "Accuracy evalution")
 ![Alt text](images/lr.png?raw=true "Learning rate schedule")
+
+## TO DO:
+- [x] Basic training for CIFAR10 :heavy_check_mark:
+- [x] (Optional) Finetune model and hyperparameters
+- [x] Vanila DDP - Single server :heavy_check_mark:
+    - [x] Basic DDP handlers and launch defs
+    - [x] Device_id everywhere 
+    - [x] Dataloaders
+    - [x] Training loop
+    - [x] Logging (vanila)    
+    - [x] Evaluation (vanila)        
+    - [x] Save / load
+
+- [x] Final DDP - multiple servers :heavy_check_mark:
+    - [x] work with SLURM
+    - [x] work on multiple servers  
+    - [x] DDP on log/eval etc     
+- [x] [SWAP](https://openreview.net/pdf?id=rygFWAEFwS) :heavy_check_mark:
+    - [x] model handling
+    - [x] proper averaging
+    - [x] dataloader handling    
+    - [x] saver handling        
+- [ ] Fix readme 
+    - [x] Add "how-to" with SLURM
+    - [x] Add "how-to" without SLURM, i.e. on a single machine
+    - [x] Describe the code, which file has what function etc or comment the code
+    - [ ] final README
+- [x] Clean up code :heavy_check_mark:
+    - [x] Comments, rebasing etc
