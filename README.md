@@ -37,6 +37,12 @@ Miquel Marti @miquelmarti
 - If you want to directly clone the repo to the image, you can just add the link and uncomment the respective line (line 103). This is not recommended as you will most likely connect to git from the host for secure access.
 - If you need to set up rootless docker with nvidia GPU support, first install [rootless docker](https://docs.docker.com/engine/security/rootless/). Then, install [nvidia-docker](https://github.com/NVIDIA/nvidia-docker). After installation, remember to edit _/etc/nvidia-container-runtime/config.toml_ to have _"no-cgroups = true"_ before restarting the docker daemon.
 
+## Usage
+- All input options need to be modified in the _params.json_ file.\
+``` cd your_path/SWAP_with_DDP```\
+```python classification.py --params_path params.json```
+- About the params, if you increase the num_worksers and notice it is slow, you should set it back to 0 or 1. This is a problem that occurs with pytorch DDP.
+
 ## Distributed training using SLURM
 
 - Before starting training, define necessary resources for each node in the ```cluster_run.sbatch``` file.
@@ -46,12 +52,6 @@ Miquel Marti @miquelmarti
 - (N-number of nodes)x(P-processes per node) are initiated each running ```main.py```
 - All comunications between processes are handled over TCP and a master process adress is set using ```--dist_url```
 - The code, conda environment and data location have to be available from all nodes with the same paths
-
-## Usage
-- All input options need to be modified in the _params.json_ file.\
-``` cd your_path/SWAP_with_DDP```\
-```python classification.py --params_path params.json```
-- About the params, if you increase the num_worksers and notice it is slow, you should set it back to 0 or 1. This is a problem that occurs with pytorch DDP.
 
 ### Results
 CIFAR10 - 8 GPUs - 512 per gpu - 150 epochs - Step 2 starts at step 1500 - without SWAP 94.3, with SWAP 95.7
