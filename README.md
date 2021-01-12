@@ -1,8 +1,10 @@
 # Repo for the ScaDaMaLe project
 [Stochastic Weight Averaging in Parallel (SWAP)](https://openreview.net/pdf?id=rygFWAEFwS) in [PyTorch](https://pytorch.org/)
 
-- [ ] Add a short project description, contributors etc
-
+Johan Fredin Haslum @cfredinh
+Miquel Marti @miquelmarti
+Christos Matsoukas @ChrisMats
+Emir Konuk @emirkonuk
  
 ## Install dependencies etc.
 
@@ -43,6 +45,7 @@
 ```sbatch cluster_run.sbatch your_conda_env data_location```
 - (N-number of nodes)x(P-processes per node) are initiated each running ```main.py```
 - All comunications between processes are handled over TCP and a master process adress is set using ```--dist_url```
+- The code, conda environment and data location have to be available from all nodes with the same paths
 
 
 
