@@ -44,7 +44,7 @@ class Cifar10(BaseSet, CIFAR10):
 
 
 class Imagenet(BaseSet, ImageNet):
-    """Dataset class loading CIFAR10.
+    """Dataset class loading ImageNet.
     
     Uses the transforms read from the .json and applies to ImageNet.
     """   

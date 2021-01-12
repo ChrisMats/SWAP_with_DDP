@@ -1,15 +1,15 @@
 {
-"dataset_params" : {"data_location" : "/storage/matsou/ILSVRC2012",
-                    "dataset": "IMAGENET",
-                    "download_data" : false,
+"dataset_params" : {"data_location" : "./data",
+                    "dataset": "CIFAR10",
+                    "download_data" : true,
                     "validation_size" : 0,
-                    "train_transforms" : {"Resize" : {"apply" : true,
+                    "train_transforms" : {"Resize" : {"apply" : false,
                                                       "height" : 256,
                                                       "width" : 256},
                                         
                                         "CenterCrop": {"apply" : false,
-                                                      "height" : 448,
-                                                      "width" : 448}, 
+                                                      "height" : 224,
+                                                      "width" : 224}, 
                                         
                                         "Normalize": true,
                                         
@@ -19,9 +19,9 @@
                                                             "angle" : 5}, 
                                         
                                         "RandomCrop": {"apply" : true,
-                                                      "height" : 224,
-                                                      "width" : 224,
-                                                      "padding" : 0}, 
+                                                      "height" : 32,
+                                                      "width" : 32,
+                                                      "padding" : 4}, 
                                         
                                         "ColorJitter" : {"apply" : false,
                                                         "brightness" : 0.2,
@@ -44,13 +44,13 @@
                                                               "value" : 0}                                          
                                          },
                   
-                    "val_transforms" : {"Resize" : {"apply" : true,
+                    "val_transforms" : {"Resize" : {"apply" : false,
                                                       "height" : 256,
                                                       "width" : 256},
                                         
                                         "CenterCrop": {"apply" : false,
-                                                      "height" : 448,
-                                                      "width" : 448}, 
+                                                      "height" : 224,
+                                                      "width" : 224}, 
                                         
                                         "Normalize": true,
                                         
@@ -85,13 +85,13 @@
                                                               "value" : 0}                                          
                                          },
                   
-                    "test_transforms" : {"Resize" : {"apply" : true,
+                    "test_transforms" : {"Resize" : {"apply" : false,
                                                       "height" : 256,
                                                       "width" : 256},
                                         
                                         "CenterCrop": {"apply" : false,
-                                                      "height" : 448,
-                                                      "width" : 448}, 
+                                                      "height" : 224,
+                                                      "width" : 224}, 
                                         
                                         "Normalize": true,
                                         
@@ -141,7 +141,7 @@
                                     "pin_memory" : true}
                   },
     
-"model_params" : {"backbone_type": "resnet50",
+"model_params" : {"backbone_type": "DLA",
                   "pretrained" : false,
                   "freeze_backbone" : false
                   },
@@ -192,7 +192,7 @@
             },
 
         
-"training_params" : {"model_name" : "imagenet_run0_resenet50",
+"training_params" : {"model_name" : "cifar10_DLA_512perGPU",
                    "grad_clipping" : 1.0,
                    "restore_session" : false,
                     "restore_only_model": false,
