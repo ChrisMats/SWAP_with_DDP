@@ -78,6 +78,7 @@ Repo for the ScaDaMaLe project
 
 
 ### Results
+CIFAR10 - 8 GPUs - 512 per gpu - 150 epochs
 ![Alt text](images/loss.png?raw=true "Loss evalution")
 ![Alt text](images/acc.png?raw=true "Accuracy evalution")
 ![Alt text](images/lr.png?raw=true "Learning rate schedule")
