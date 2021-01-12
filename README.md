@@ -9,6 +9,8 @@ Johan Fredin Haslum @cfredinh
 
 Miquel Marti @miquelmarti
 
+[![Video demonstration](images/swap.png)](https://youtu.be/O3ZxNvEx48Q)
+
 ## Install dependencies etc.
 
 - Python 3.8+ 
