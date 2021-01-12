@@ -1,5 +1,6 @@
 # SWAP_with_DDP
-Repo for the ScaDaMaLe project
+Repo for the ScaDaMaLe project:\
+["Stochastic Weight Averaging in Parallel: Large-Batch Training that Generalizes Well](https://openreview.net/pdf?id=rygFWAEFwS)
 
 
 ## TO DO:
