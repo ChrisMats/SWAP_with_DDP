@@ -78,7 +78,7 @@ Repo for the ScaDaMaLe project
 
 
 ### Results
-CIFAR10 - 8 GPUs - 512 per gpu - 150 epochs - Step 2 starts at step 1500
+CIFAR10 - 8 GPUs - 512 per gpu - 150 epochs - Step 2 starts at step 1500 - without SWAP 94.3, with SWAP 95.7
 
 ![Alt text](images/loss.png?raw=true "Loss evalution")
 ![Alt text](images/acc.png?raw=true "Accuracy evalution")
