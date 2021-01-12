@@ -1,7 +1,6 @@
 # SWAP_with_DDP
 Repo for the ScaDaMaLe project:\
-["Stochastic Weight Averaging in Parallel: Large-Batch Training that Generalizes Well](https://openreview.net/pdf?id=rygFWAEFwS)
-
+[Stochastic Weight Averaging in Parallel (SWAP)](https://openreview.net/pdf?id=rygFWAEFwS) in [PyTorch](https://pytorch.org/)
 
 ## TO DO:
 - [x] Basic training for CIFAR10 :heavy_check_mark:
