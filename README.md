@@ -26,13 +26,6 @@ Miquel Marti @miquelmarti
 - Using the .yml file\
 ```conda env create -f environment.yml```
 
-### Install using docker (rootless)
-
-## Usage
-- All input options need to be modified in the _params.json_ file.\
-``` cd your_path/SWAP_with_DDP```\
-```python classification.py --params_path params.json```
-- About the params, if you increase the num_worksers and notice it is slow, you should set it back to 0 or 1. This is a problem that occurs with pytorch DDP.
 
 ## Docker setup
 - Note that the Dockerfile is provided for single machine, multiGPU usage. For multi-machine setups, refer to the SLURM section.
@@ -54,7 +47,11 @@ Miquel Marti @miquelmarti
 - All comunications between processes are handled over TCP and a master process adress is set using ```--dist_url```
 - The code, conda environment and data location have to be available from all nodes with the same paths
 
-
+## Usage
+- All input options need to be modified in the _params.json_ file.\
+``` cd your_path/SWAP_with_DDP```\
+```python classification.py --params_path params.json```
+- About the params, if you increase the num_worksers and notice it is slow, you should set it back to 0 or 1. This is a problem that occurs with pytorch DDP.
 
 ### Results
 CIFAR10 - 8 GPUs - 512 per gpu - 150 epochs - Step 2 starts at step 1500 - without SWAP 94.3, with SWAP 95.7
