@@ -20,4 +20,4 @@ echo "Current dir: ${PWD}"
 export PYTHONPATH=.
 nodename=${SLURMD_NODENAME}
 
-srun python classification.py --dist_url $nodename --data_location /nas/cifar
+srun python classification.py --dist_url $nodename --data_location $2
