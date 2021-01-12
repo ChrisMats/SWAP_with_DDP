@@ -25,9 +25,9 @@ Repo for the ScaDaMaLe project
     - [x] saver handling        
 - [ ] Fix readme 
     - [x] Add "how-to" with SLURM
-    - [ ] Add "how-to" without SLURM, i.e. on a single machine
-    - [ ] Describe the code, which file has what function etc (but do we need this now? we have comments everywhere)
-    - [ ] Once everything is done, reformat the README
+    - [x] Add "how-to" without SLURM, i.e. on a single machine
+    - [x] Describe the code, which file has what function etc or comment the code
+    - [ ] final README
 - [x] Clean up code :heavy_check_mark:
     - [x] Comments, rebasing etc
 
@@ -49,7 +49,6 @@ Repo for the ScaDaMaLe project
 ```conda env create -f environment.yml```
 
 ### Install using docker (rootless)
-- [x] Add dockerfile
 
 ## Usage
 - All input options need to be modified in the _params.json_ file.\
