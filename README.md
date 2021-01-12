@@ -1,6 +1,8 @@
 # SWAP_with_DDP
-Repo for the ScaDaMaLe project
+Repo for the ScaDaMaLe project:\
+[Stochastic Weight Averaging in Parallel (SWAP)](https://openreview.net/pdf?id=rygFWAEFwS) in [PyTorch](https://pytorch.org/)
 
+- [ ] Add a short project description, contributors etc
 
 ## TO DO:
 - [x] Basic training for CIFAR10 :heavy_check_mark:
@@ -25,15 +27,12 @@ Repo for the ScaDaMaLe project
     - [x] saver handling        
 - [ ] Fix readme 
     - [x] Add "how-to" with SLURM
-    - [ ] Add "how-to" without SLURM, i.e. on a single machine
-    - [ ] Describe the code, which file has what function etc (but do we need this now? we have comments everywhere)
-    - [ ] Once everything is done, reformat the README
+    - [x] Add "how-to" without SLURM, i.e. on a single machine
+    - [x] Describe the code, which file has what function etc or comment the code
+    - [ ] final README
 - [x] Clean up code :heavy_check_mark:
     - [x] Comments, rebasing etc
 
-
-## Stochastic Weight Averaging in Parallel (SWAP) in PyTorch
-- [ ] Add project description, contributors etc
  
 ## Install dependencies etc.
 
@@ -49,12 +48,12 @@ Repo for the ScaDaMaLe project
 ```conda env create -f environment.yml```
 
 ### Install using docker (rootless)
-- [x] Add dockerfile
 
 ## Usage
-- All input options need to be modified in the _params.json_ file, including whether to use SLURM or not **(or is this true? maybe it is a command line arg?)**.\
+- All input options need to be modified in the _params.json_ file.\
 ``` cd your_path/SWAP_with_DDP```\
 ```python classification.py --params_path params.json```
+- About the params, if you increase the num_worksers and notice it is slow, you should set it back to 0 or 1. This is a problem that occurs with pytorch DDP.
 
 ## Docker setup
 - Note that the Dockerfile is provided for single machine, multiGPU usage. For multi-machine setups, refer to the SLURM section.
@@ -68,12 +67,18 @@ Repo for the ScaDaMaLe project
 
 ## Distributed training using SLURM
 
-- Define necessary resources on each node in ```cluster_run.sbatch```
-- Train on multiple nodes on SLURM cluster using comand ```sbatch cluster_run.sbatch```
+- Before starting training, define necessary resources for each node in the ```cluster_run.sbatch``` file.
+- Train on multiple nodes on SLURM cluster using comand \
+``` cd your_path/SWAP_with_DDP```\
+```sbatch cluster_run.sbatch your_conda_env data_location```
 - (N-number of nodes)x(P-processes per node) are initiated each running ```main.py```
 - All comunications between processes are handled over TCP and a master process adress is set using ```--dist_url```
 
 
 
 ### Results
-- [ ] Add main results
+CIFAR10 - 8 GPUs - 512 per gpu - 150 epochs - Step 2 starts at step 1500 - without SWAP 94.3, with SWAP 95.7
+
+![Alt text](images/loss.png?raw=true "Loss evalution")
+![Alt text](images/acc.png?raw=true "Accuracy evalution")
+![Alt text](images/lr.png?raw=true "Learning rate schedule")
