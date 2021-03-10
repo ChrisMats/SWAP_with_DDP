@@ -1,6 +1,6 @@
 import wandb
 from .bases import *
-from .wrappers import DefaultWrapper, dist
+from .wrappers import DefaultWrapper, dist, DS
 
 def has_passed():
     print("\n\n\n Rank {} passed".format(torch.cuda.current_device()))
@@ -65,6 +65,9 @@ class Trainer(BaseTrainer):
         for self.epoch in epoch_bar:            
             # checking if training should change phases and reinits optimizers etc.
             self.switch_to_second_phase()
+            # updating seed in DS
+            if isinstance(self.trainloader.sampler, DS):
+                self.trainloader.sampler.set_epoch(self.epoch)            
             
             self.model.train()             
             iter_bar = enumerate(self.trainloader)
